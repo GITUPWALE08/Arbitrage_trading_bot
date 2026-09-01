@@ -1,0 +1,164 @@
+import asyncio
+import os
+import random
+from typing import Dict, List
+
+from core.database import DatabaseStateStore
+from core.notifier import ConsoleNotifier
+from core.logger import ExecutionLogger, logging
+from core.orderbook_manager import OrderBookManager
+from core.fee_calculator import FeeCalculator
+from core.latency_monitor import LatencyMonitor
+from core.inventory_manager import CrossExchangeInventoryManager
+from core.risk_manager import RiskManager
+from core.reconciliation import ReconciliationManager
+from core.liquidation_monitor import LiquidationMonitor
+from core.execution_engine import ExecutionStateMachine
+
+from paper_trading.simulator import SimulatedExchangeClient
+
+from strategies.triangular import TriangularArbitrageStrategy
+from strategies.cross_exchange import CrossExchangeArbitrageStrategy
+from strategies.funding_rate import FundingRateStrategy
+
+from gate.go_live_gate import GoLiveGate, TradeJournalMock, GateConfig
+
+logger = logging.getLogger("Main")
+logger.setLevel(logging.INFO)
+
+async def mock_orderbook_websocket_feed(obm: OrderBookManager):
+    """
+    Simulates a WebSocket feed updating the order books every 100ms.
+    In production, this is replaced by ccxt.pro's watch_order_book().
+    """
+    logger.info("Starting WebSocket feed simulation...")
+    while True:
+        # Mock some dynamic prices around 50k for BTC
+        btc_price = 50000.0 + random.uniform(-10, 10)
+        await obm.update_book("binance", "BTCUSDT", [(btc_price - 0.1, 1.5)], [(btc_price + 0.1, 1.5)])
+        
+        btc_kraken = btc_price + random.uniform(50, 100) # Arbitrage gap!
+        await obm.update_book("kraken", "BTCUSDT", [(btc_kraken - 0.1, 1.0)], [(btc_kraken + 0.1, 1.0)])
+        
+        await obm.update_book("binance", "ETHBTC", [(0.05, 10.0)], [(0.0501, 10.0)])
+        await obm.update_book("binance", "ETHUSDT", [(btc_price * 0.05, 10.0)], [(btc_price * 0.05 + 1.0, 10.0)])
+        
+        await asyncio.sleep(0.1)
+
+async def main_trading_loop(
+    strategies: Dict,
+    risk_manager: RiskManager,
+    gate: GoLiveGate,
+    fast_store: any
+):
+    """
+    The main decision loop. Evaluates strategies sequentially or in parallel.
+    """
+    logger.info("Bot is alive and entering main trading loop.")
+    
+    while True:
+        # 1. Check Global Risk Switches (Section 6.2)
+        can_trade = await risk_manager.check_kill_switches()
+        if not can_trade:
+            logger.warning("Trading paused due to kill switches. Waiting...")
+            await asyncio.sleep(5)
+            continue
+            
+        # 2. Acquire distributed lock for evaluation (Section 11)
+        if await fast_store.acquire_lock("triangular_eval", timeout_sec=2):
+            try:
+                # 3. Evaluate Strategy A (Triangular)
+                tri_strat = strategies['triangular']
+                tri_def = [
+                    {'symbol': 'BTCUSDT', 'side': 'buy'},
+                    {'symbol': 'ETHBTC', 'side': 'buy'},
+                    {'symbol': 'ETHUSDT', 'side': 'sell'}
+                ]
+                tri_eval = await tri_strat.evaluate_triangle(tri_def, 200.0)
+                
+                if tri_eval.get('is_viable'):
+                    passed_gate, _ = gate.evaluate('triangular')
+                    if not passed_gate:
+                        logger.debug("Go-Live Gate prevents live execution. Strategy A is viable in paper.")
+            finally:
+                await fast_store.release_lock("triangular_eval")
+                
+        await asyncio.sleep(1.0) # Throttle evaluation cycle
+
+async def run_bot():
+    """
+    Section 17: Application Bootstrap
+    """
+    logger.info("Bootstrapping Crypto Arbitrage Bot...")
+    
+    # 1. State & Infra
+    db_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///bot_state.db")
+    state_store = DatabaseStateStore(db_url)
+    await state_store.initialize_db()
+    
+    notifier = ConsoleNotifier()
+    exec_logger = ExecutionLogger()
+    
+    config = {
+        'max_position_size_usd': 500.0,
+        'min_profit_threshold_pct': 0.15,
+        'slippage_buffer_pct': 0.05,
+        'partial_fill_min_viable_pct': 50.0,
+        'withdrawal_fee_usd': 5.0,
+        'exchanges': ['binance', 'kraken']
+    }
+    
+    risk_manager = RiskManager(state_store, notifier, config)
+    state_machine = ExecutionStateMachine(state_store, notifier, exec_logger)
+    
+    from core.redis_client import FastStateStore
+    from core.websocket_manager import WebSocketConnectionManager
+    
+    fast_store = FastStateStore(os.getenv("REDIS_URL", "redis://localhost"))
+    await fast_store.connect()
+    
+    obm = OrderBookManager(fast_store=fast_store, stale_threshold_sec=0.5)
+    ws_manager = WebSocketConnectionManager()
+    latency_monitor = LatencyMonitor()
+    fee_calc = FeeCalculator(config)
+    inventory_manager = CrossExchangeInventoryManager(state_store, config)
+    
+    # 3. Exchange Clients (Defaulting to Paper Trading Simulator per Section 9 constraints)
+    logger.info("Initializing Paper Trading Simulators...")
+    client_binance = SimulatedExchangeClient("binance", obm, simulated_latency_ms=50)
+    client_kraken = SimulatedExchangeClient("kraken", obm, simulated_latency_ms=80)
+    clients = {"binance": client_binance, "kraken": client_kraken}
+    
+    # 4. Independent Subsystems
+    recon_manager = ReconciliationManager(state_store, clients, notifier)
+    recon_manager.risk_manager = risk_manager # Circular dep injection
+    
+    liq_monitor = LiquidationMonitor(client_binance, notifier, state_machine)
+    liq_monitor.risk_manager = risk_manager
+    
+    gate = GoLiveGate(TradeJournalMock(), GateConfig(manual_sign_off=False))
+
+    # 5. Strategies
+    strategies = {
+        "triangular": TriangularArbitrageStrategy(client_binance, fee_calc, obm, state_machine, config),
+        "cross_exchange": CrossExchangeArbitrageStrategy(clients, fee_calc, obm, state_machine, inventory_manager, config),
+        "funding_rate": FundingRateStrategy(client_binance, fee_calc, config.get('funding_rate', {}), state_store)
+    }
+
+    # 6. Start Async Background Tasks
+    tasks = [
+        asyncio.create_task(ws_manager.monitor_heartbeats()),
+        asyncio.create_task(mock_orderbook_websocket_feed(obm)),
+        asyncio.create_task(recon_manager.run_periodic_reconciliation(interval_seconds=60)),
+        asyncio.create_task(liq_monitor.monitor_loop()),
+        asyncio.create_task(main_trading_loop(strategies, risk_manager, gate, fast_store))
+    ]
+    
+    logger.info("All subsystems initialized. Bot is running.")
+    await asyncio.gather(*tasks)
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(run_bot())
+    except KeyboardInterrupt:
+        logger.info("Bot shutting down...")
