@@ -36,6 +36,13 @@ class ExchangeClient(ABC):
         pass
 
     @abstractmethod
+    async def get_margin_ratio(self, symbol: str) -> float:
+        """
+        Returns the current margin ratio for a given perp/margin symbol.
+        """
+        pass
+
+    @abstractmethod
     async def get_mark_price(self, symbol: str) -> float:
         """
         Fetch the current mark price for a perpetual or spot symbol.

@@ -96,10 +96,9 @@ class ReconciliationManager:
     async def _halt_exchange(self, exchange_name: str):
         """
         Trigger the per-exchange kill switch (Section 6.2).
-        For now, this just logs, but it will be wired into RiskManager later.
         """
         logger.warning(f"HALTING TRADING on {exchange_name} due to reconciliation failure.")
-        # TODO: integrate with actual KillSwitch state
+        await self.state_store.set_kill_switch('exchange', exchange_name, True, 'reconciliation_engine', 'Critical discrepancy found')
 
     async def run_periodic_reconciliation(self, interval_seconds: int = 60):
         """

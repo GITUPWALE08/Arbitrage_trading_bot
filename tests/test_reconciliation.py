@@ -14,6 +14,7 @@ class DummyExchangeClient(ExchangeClient):
     async def get_order_status(self, order_id: str, symbol: str) -> dict: return {}
     async def get_historical_funding_rates(self, symbol: str, days: int) -> list: return []
     async def get_mark_price(self, symbol: str) -> float: return 0.0
+    async def get_margin_ratio(self, symbol: str) -> float: return 0.1
 
 @pytest.fixture
 def store():

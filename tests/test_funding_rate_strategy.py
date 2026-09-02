@@ -18,6 +18,8 @@ class MockExchangeForFunding(ExchangeClient):
             return self.perp_price
         return self.spot_price
         
+    async def get_margin_ratio(self, symbol: str) -> float:
+        return 0.1
     async def get_balances(self): return {}
     async def get_order_status(self, oid, sym): return {}
     async def place_order(self, sym, side, typ, qty, px=None): return {}

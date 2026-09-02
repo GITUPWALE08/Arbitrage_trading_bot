@@ -107,13 +107,15 @@ class TriangularArbitrageStrategy:
             # Check against config threshold
             is_viable = net_profit_est > min_profit_abs
             
+            gross_spread_pct = (explicit_gross_pnl / base_investment) * 100.0 if base_investment > 0 else 0.0
+            
             # Log opportunity to DB per Section 10
             opp_data = {
                 "strategy": "triangular",
                 "symbols": "-".join([d['symbol'] for d in triangle_def]),
-                "gross_spread_pct": 0.0, # Placeholder for precise spread calc
+                "gross_spread_pct": gross_spread_pct,
                 "net_profit_estimate": net_profit_est,
-                "fee_breakdown": {}, # Placeholder
+                "fee_breakdown": result.get("fee_breakdown", {}),
                 "threshold_at_time": self.min_profit_threshold_pct,
                 "action_taken": "EXECUTE" if is_viable else "REJECTED",
                 "execution_id": None

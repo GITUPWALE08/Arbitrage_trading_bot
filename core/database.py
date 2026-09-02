@@ -28,6 +28,7 @@ class ExecutionRecord(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     realized_profit = Column(Float, default=0.0)
     data = Column(JSON, default=dict) # Use JSON to support SQLite testing and Postgres JSONB gracefully
+    mode = Column(String, default="simulated")
 
 class ReconciliationLog(Base):
     __tablename__ = "reconciliation_log"
@@ -38,6 +39,7 @@ class ReconciliationLog(Base):
     discrepancies = Column(JSON, default=dict)
     severity = Column(String, nullable=False)
     timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    mode = Column(String, default="simulated")
 
 class KillSwitchRecord(Base):
     __tablename__ = "kill_switches"
@@ -65,6 +67,7 @@ class ExecutionLeg(Base):
     status = Column(String, nullable=False)
     submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     filled_at = Column(DateTime(timezone=True), nullable=True)
+    mode = Column(String, default="simulated")
 
 class OpportunityRecord(Base):
     __tablename__ = "opportunities"
@@ -78,6 +81,7 @@ class OpportunityRecord(Base):
     threshold_at_time = Column(Float, nullable=False)
     action_taken = Column(String, nullable=False)
     execution_id = Column(String, nullable=True)
+    mode = Column(String, default="simulated")
 
 class BalancesSnapshot(Base):
     __tablename__ = "balances_snapshot"
@@ -87,6 +91,7 @@ class BalancesSnapshot(Base):
     balance = Column(Float, nullable=False)
     snapshot_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     source = Column(String, nullable=False)
+    mode = Column(String, default="simulated")
 
 class FundingRateHistory(Base):
     __tablename__ = "funding_rate_history"
@@ -104,6 +109,7 @@ class SystemEvent(Base):
     severity = Column(String, nullable=False)
     payload = Column(JSON, default=dict)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    mode = Column(String, default="simulated")
 
 class MarginMonitoring(Base):
     __tablename__ = "margin_monitoring"
@@ -114,28 +120,77 @@ class MarginMonitoring(Base):
     margin_ratio = Column(Float, nullable=False)
     liquidation_price = Column(Float, nullable=True)
     checked_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    mode = Column(String, default="simulated")
+
+
+class SystemSettings(Base):
+    __tablename__ = "system_settings"
+    key = Column(String, primary_key=True)
+    value = Column(String, nullable=True)
 
 class DatabaseStateStore(StateStore):
     """
     SQLAlchemy-based Postgres/SQLite implementation of StateStore per Section 10.
     """
-    def __init__(self, db_url: str):
+    def __init__(self, db_url: str, active_mode: str = 'simulated'):
+        self.active_mode = active_mode
         # We use aiosqlite for tests, asyncpg for real DB
         self.engine = create_async_engine(db_url, echo=False)
         self.SessionLocal = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
         
     async def initialize_db(self):
         async with self.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+            await conn.run_sync(Base.metadata.create_all)            
+            # Migration for mode column
+            tables = ["executions", "reconciliation_log", "execution_legs", "opportunities", "balances_snapshot", "system_events", "margin_monitoring"]
+            from sqlalchemy import text as sqa_text
+            for table in tables:
+                try:
+                    await conn.execute(sqa_text(f"ALTER TABLE {table} ADD COLUMN mode VARCHAR DEFAULT 'simulated'"))
+                except Exception:
+                    pass
+
             
+
+    async def get_system_setting(self, key: str) -> str:
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select
+            stmt = select(SystemSettings).where(SystemSettings.key == key)
+            result = await session.execute(stmt)
+            record = result.scalars().first()
+            return record.value if record else None
+
+    async def set_system_setting(self, key: str, value: str):
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select
+            stmt = select(SystemSettings).where(SystemSettings.key == key)
+            result = await session.execute(stmt)
+            record = result.scalars().first()
+            if not record:
+                record = SystemSettings(key=key, value=value)
+                session.add(record)
+            else:
+                record.value = value
+            await session.commit()
+            
+    async def delete_system_setting(self, key: str):
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select
+            stmt = select(SystemSettings).where(SystemSettings.key == key)
+            result = await session.execute(stmt)
+            record = result.scalars().first()
+            if record:
+                await session.delete(record)
+                await session.commit()
+
     async def save_execution_state(self, execution_id: str, strategy: str, state: ExecutionState, data: dict):
         async with self.SessionLocal() as session:
-            stmt = select(ExecutionRecord).where(ExecutionRecord.execution_id == execution_id)
+            stmt = select(ExecutionRecord).where(ExecutionRecord.execution_id == execution_id, ExecutionRecord.mode == self.active_mode)
             result = await session.execute(stmt)
             record = result.scalars().first()
             
             if not record:
-                record = ExecutionRecord(
+                record = ExecutionRecord(mode=self.active_mode, 
                     execution_id=execution_id,
                     strategy=strategy,
                     state=state.name,
@@ -153,8 +208,9 @@ class DatabaseStateStore(StateStore):
             await session.commit()
             
     async def get_execution_state(self, execution_id: str) -> dict:
+        mode = self.active_mode
         async with self.SessionLocal() as session:
-            stmt = select(ExecutionRecord).where(ExecutionRecord.execution_id == execution_id)
+            stmt = select(ExecutionRecord).where(ExecutionRecord.execution_id == execution_id, ExecutionRecord.mode == mode)
             result = await session.execute(stmt)
             record = result.scalars().first()
             if not record:
@@ -168,6 +224,7 @@ class DatabaseStateStore(StateStore):
             }
 
     async def get_active_executions(self) -> List[Dict[str, Any]]:
+        mode = self.active_mode
         active_states = [
             ExecutionState.VALIDATING.name, 
             ExecutionState.EXECUTING_LEG_1.name, 
@@ -180,7 +237,7 @@ class DatabaseStateStore(StateStore):
         ]
         
         async with self.SessionLocal() as session:
-            stmt = select(ExecutionRecord).where(ExecutionRecord.state.in_(active_states))
+            stmt = select(ExecutionRecord).where(ExecutionRecord.state.in_(active_states), ExecutionRecord.mode == mode)
             result = await session.execute(stmt)
             records = result.scalars().all()
             
@@ -204,7 +261,7 @@ class DatabaseStateStore(StateStore):
         
     async def save_reconciliation_log(self, exchange: str, expected: dict, actual: dict, discrepancies: dict, severity: str):
         async with self.SessionLocal() as session:
-            log = ReconciliationLog(
+            log = ReconciliationLog(mode=self.active_mode, 
                 exchange=exchange,
                 expected_balances=expected,
                 actual_balances=actual,
@@ -260,25 +317,25 @@ class DatabaseStateStore(StateStore):
 
     async def save_execution_leg(self, leg_data: dict):
         async with self.SessionLocal() as session:
-            record = ExecutionLeg(**leg_data)
+            record = ExecutionLeg(**leg_data, mode=self.active_mode)
             session.add(record)
             await session.commit()
             
     async def save_opportunity(self, opp_data: dict):
         async with self.SessionLocal() as session:
-            record = OpportunityRecord(**opp_data)
+            record = OpportunityRecord(**opp_data, mode=self.active_mode)
             session.add(record)
             await session.commit()
             
     async def save_balances_snapshot(self, exchange: str, asset: str, balance: float, source: str):
         async with self.SessionLocal() as session:
-            record = BalancesSnapshot(exchange=exchange, asset=asset, balance=balance, source=source)
+            record = BalancesSnapshot(mode=self.active_mode, exchange=exchange, asset=asset, balance=balance, source=source)
             session.add(record)
             await session.commit()
             
     async def save_margin_monitoring(self, position_id: str, exchange: str, symbol: str, margin_ratio: float, liquidation_price: float = None):
         async with self.SessionLocal() as session:
-            record = MarginMonitoring(position_id=position_id, exchange=exchange, symbol=symbol, margin_ratio=margin_ratio, liquidation_price=liquidation_price)
+            record = MarginMonitoring(mode=self.active_mode, position_id=position_id, exchange=exchange, symbol=symbol, margin_ratio=margin_ratio, liquidation_price=liquidation_price)
             session.add(record)
             await session.commit()
             

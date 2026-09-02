@@ -4,7 +4,6 @@ import random
 from typing import Dict, List
 
 from core.database import DatabaseStateStore
-from core.notifier import ConsoleNotifier
 from core.logger import ExecutionLogger, logging
 from core.orderbook_manager import OrderBookManager
 from core.fee_calculator import FeeCalculator
@@ -49,7 +48,8 @@ async def main_trading_loop(
     strategies: Dict,
     risk_manager: RiskManager,
     gate: GoLiveGate,
-    fast_store: any
+    fast_store: any,
+    state_store=None
 ):
     """
     The main decision loop. Evaluates strategies sequentially or in parallel.
@@ -57,6 +57,15 @@ async def main_trading_loop(
     logger.info("Bot is alive and entering main trading loop.")
     
     while True:
+
+        # Check for pending mode switch
+        pending_mode = await state_store.get_system_setting("pending_mode")
+        if pending_mode:
+            execs = await state_store.get_active_executions()
+            if not execs:
+                logger.info(f"Safe to switch to {pending_mode}. Triggering restart.")
+                os._exit(0)
+
         # 1. Check Global Risk Switches (Section 6.2)
         can_trade = await risk_manager.check_kill_switches()
         if not can_trade:
@@ -95,9 +104,23 @@ async def run_bot():
     db_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///bot_state.db")
     state_store = DatabaseStateStore(db_url)
     await state_store.initialize_db()
+
+    # Process mode switch on startup
+    pending_mode = await state_store.get_system_setting("pending_mode")
+    if pending_mode:
+        await state_store.set_system_setting("active_mode", pending_mode)
+        await state_store.delete_system_setting("pending_mode")
+        logger.info(f"Applied pending mode switch: {pending_mode}")
+        
+    active_mode = await state_store.get_system_setting("active_mode")
+    if not active_mode:
+        active_mode = "simulated"
+        await state_store.set_system_setting("active_mode", active_mode)
+    state_store.active_mode = active_mode
+    logger.info(f"Bot starting in mode: {active_mode.upper()}")
+
     
-    notifier = ConsoleNotifier()
-    exec_logger = ExecutionLogger()
+    from core.notifier import TelegramNotifier
     
     config = {
         'max_position_size_usd': 500.0,
@@ -107,6 +130,13 @@ async def run_bot():
         'withdrawal_fee_usd': 5.0,
         'exchanges': ['binance', 'kraken']
     }
+
+    telegram_token = os.getenv("TELEGRAM_TOKEN", "")
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
+    notifier = TelegramNotifier(telegram_token, telegram_chat_id, state_store, config)
+    await notifier.start()
+    
+    exec_logger = ExecutionLogger()
     
     risk_manager = RiskManager(state_store, notifier, config)
     state_machine = ExecutionStateMachine(state_store, notifier, exec_logger)
@@ -123,20 +153,60 @@ async def run_bot():
     fee_calc = FeeCalculator(config)
     inventory_manager = CrossExchangeInventoryManager(state_store, config)
     
-    # 3. Exchange Clients (Defaulting to Paper Trading Simulator per Section 9 constraints)
-    logger.info("Initializing Paper Trading Simulators...")
-    client_binance = SimulatedExchangeClient("binance", obm, simulated_latency_ms=50)
-    client_kraken = SimulatedExchangeClient("kraken", obm, simulated_latency_ms=80)
-    clients = {"binance": client_binance, "kraken": client_kraken}
+    # 3. Exchange Clients
+    # Check if we are in live mode based on active_mode
+    golive_active = (active_mode == "live")
     
-    # 4. Independent Subsystems
+    clients = {}
+    ws_tasks = []
+    
+    obm = OrderBookManager(fast_store=fast_store, stale_threshold_sec=0.5)
+    
+    if golive_active:
+        logger.warning("🔴 LIVE TRADING MODE ENGAGED. Using CCXTExchangeClient.")
+        from core.ccxt_client import CCXTExchangeClient
+        binance_key = os.getenv("BINANCE_API_KEY", "")
+        binance_sec = os.getenv("BINANCE_SECRET", "")
+        kraken_key = os.getenv("KRAKEN_API_KEY", "")
+        kraken_sec = os.getenv("KRAKEN_SECRET", "")
+        
+        client_binance = CCXTExchangeClient("binance", binance_key, binance_sec, testnet=False)
+        client_kraken = CCXTExchangeClient("kraken", kraken_key, kraken_sec, testnet=False)
+        
+        clients['binance'] = client_binance
+        clients['kraken'] = client_kraken
+        
+        # We need to watch symbols used by strategies
+        symbols_to_watch = ["BTCUSDT", "ETHBTC", "ETHUSDT"] # Just a subset for now
+        for sym in symbols_to_watch:
+            ws_tasks.append(asyncio.create_task(client_binance.watch_order_book_loop(sym, obm, ws_manager)))
+            if sym == "BTCUSDT":
+                ws_tasks.append(asyncio.create_task(client_kraken.watch_order_book_loop(sym, obm, ws_manager)))
+    else:
+        logger.info("📄 PAPER TRADING MODE. Using SimulatedExchangeClient.")
+        client_binance = SimulatedExchangeClient("binance", obm, simulated_latency_ms=100)
+        client_kraken = SimulatedExchangeClient("kraken", obm, simulated_latency_ms=100)
+        clients['binance'] = client_binance
+        clients['kraken'] = client_kraken
+        ws_tasks.append(asyncio.create_task(mock_orderbook_websocket_feed(obm)))
+        
     recon_manager = ReconciliationManager(state_store, clients, notifier)
     recon_manager.risk_manager = risk_manager # Circular dep injection
-    
+
     liq_monitor = LiquidationMonitor(client_binance, notifier, state_machine)
     liq_monitor.risk_manager = risk_manager
     
-    gate = GoLiveGate(TradeJournalMock(), GateConfig(manual_sign_off=False))
+    class DummyJournal:
+        executions = []
+        reconciliation_logs = []
+        paper_trading_start = datetime.now(timezone.utc)
+    
+    # Normally we would query the state_store for this in the main loop,
+    # but the GoLiveGate now requires a journal-like object to read from.
+    # We will initialize it dynamically in the command or pass an object that pulls from state_store.
+    # For main.py initialization, we can just pass the dummy since evaluate() is only called in notifier or after querying DB.
+    gate_journal = DummyJournal()
+    gate = GoLiveGate(gate_journal, GateConfig(manual_sign_off=False))
 
     # 5. Strategies
     strategies = {
@@ -148,11 +218,10 @@ async def run_bot():
     # 6. Start Async Background Tasks
     tasks = [
         asyncio.create_task(ws_manager.monitor_heartbeats()),
-        asyncio.create_task(mock_orderbook_websocket_feed(obm)),
         asyncio.create_task(recon_manager.run_periodic_reconciliation(interval_seconds=60)),
         asyncio.create_task(liq_monitor.monitor_loop()),
-        asyncio.create_task(main_trading_loop(strategies, risk_manager, gate, fast_store))
-    ]
+        asyncio.create_task(main_trading_loop(strategies, risk_manager, gate, fast_store, state_store))
+    ] + ws_tasks
     
     logger.info("All subsystems initialized. Bot is running.")
     await asyncio.gather(*tasks)

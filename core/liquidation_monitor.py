@@ -44,9 +44,7 @@ class LiquidationMonitor:
         context = data["context"]
         
         try:
-            # Mocking the margin ratio check. Real integration would call:
-            # margin_ratio = await self.client.get_margin_ratio(symbol)
-            margin_ratio = 0.5 
+            margin_ratio = await self.client.get_margin_ratio(symbol)
             
             await self.state_machine.state_store.save_margin_monitoring(
                 position_id=execution_id,

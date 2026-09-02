@@ -147,3 +147,6 @@ class SimulatedExchangeClient(ExchangeClient):
         if book and book.asks and book.bids:
             return (book.asks[0][0] + book.bids[0][0]) / 2.0
         return 0.0
+
+    async def get_margin_ratio(self, symbol: str) -> float:
+        return 0.1 # Mocked healthy margin ratio

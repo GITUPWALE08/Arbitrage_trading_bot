@@ -50,8 +50,9 @@ class CrossExchangeArbitrageStrategy:
         # Actually, standard fee calculator walks the book and correctly adds/subtracts notional
         # if both legs are same size.
         
-        # Calculate profitability
-        min_profit_abs = (size * 50000) * (self.min_profit_threshold_pct / 100.0) # Assume 50k price for absolute calc sizing, or just pass 0 for MVP
+        # Calculate profitability dynamically
+        avg_price = buy_book.asks[0][0] if buy_book.asks else 0.0
+        min_profit_abs = (size * avg_price) * (self.min_profit_threshold_pct / 100.0)
         
         try:
             result = await self.fee_calc.calculate_net_profit(
@@ -98,8 +99,12 @@ class CrossExchangeArbitrageStrategy:
         
         filled_legs = []
         if buy_success:
+            buy_res['exchange'] = buy_leg['exchange']
+            buy_res['side'] = 'buy'
             filled_legs.append(buy_res)
         if sell_success:
+            sell_res['exchange'] = sell_leg['exchange']
+            sell_res['side'] = 'sell'
             filled_legs.append(sell_res)
             
         if buy_success and sell_success:
@@ -130,19 +135,15 @@ class CrossExchangeArbitrageStrategy:
                     continue
                     
                 reverse_side = "sell" if order['side'] == "buy" else "buy"
-                exchange = order.get('exchange', self.config['exchanges'][0]) # Mock exchange name if missing
-                # Actually place_order doesn't return exchange name in MVP, we should pass it
+                exchange = order['exchange']
+                symbol = order.get('symbol', context.data.get('symbol', 'BTCUSDT')) # Fallback if symbol missing in result
                 
-                logger.info(f"Unwinding parallel leg: {reverse_side} {filled_qty} {order['symbol']}")
+                logger.info(f"Unwinding parallel leg: {reverse_side} {filled_qty} {symbol} on {exchange}")
                 
-                # In real code, we need to know WHICH exchange this order belongs to. 
-                # For MVP testing, we assume we can route it based on side (if we bought, we were on the buy exchange)
-                # But it's safer to just lookup the client. We will assume the simulator's client is aware.
-                # Here we just use the first client for MVP test simplicity
-                client = list(self.clients.values())[0] 
+                client = self.clients[exchange]
                 
                 await client.place_order(
-                    symbol=order['symbol'],
+                    symbol=symbol,
                     side=reverse_side,
                     order_type="market",
                     quantity=filled_qty

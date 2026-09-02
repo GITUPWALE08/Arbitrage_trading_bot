@@ -73,8 +73,9 @@ class FeeCalculator:
             notional = size * avg_price
             notional_usd = notional * rate_to_usd
             
-            # Fetch fee (mocked as taking from a client or cached config)
-            fee_pct = 0.001 
+            # Fetch fee from dynamic config or use fallback baseline
+            fee_schedule = kwargs.get('fee_schedule', {})
+            fee_pct = fee_schedule.get(exchange, {}).get(symbol, 0.001)
             fee_cost_usd = notional_usd * fee_pct
             total_fees += fee_cost_usd
             
@@ -124,5 +125,11 @@ class FeeCalculator:
             "total_fees": total_fees,
             "slippage_cost": slippage_cost,
             "latency_cost": latency_cost,
+            "fee_breakdown": {
+                "exchange_fees": total_fees - cross_exchange_withdrawal_fee,
+                "withdrawal_fees": cross_exchange_withdrawal_fee,
+                "slippage_buffer": slippage_cost,
+                "latency_decay": latency_cost
+            },
             "leg_details": details
         }

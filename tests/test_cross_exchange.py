@@ -15,13 +15,13 @@ def cross_env():
     obm = OrderBookManager()
     
     # Binance is cheap (Buy here)
-    obm.books[("binance", "BTCUSDT")] = OrderBook(symbol="BTCUSDT", exchange="binance", bids=[], asks=[(50000.0, 1.0)])
+    obm.books[("binance", "BTCUSDT")] = OrderBook(symbol="BTCUSDT", exchange="binance", bids=[(49500.0, 1.0)], asks=[(50000.0, 1.0)])
     
     # Kraken is expensive (Sell here)
     obm.books[("kraken", "BTCUSDT")] = OrderBook(symbol="BTCUSDT", exchange="kraken", bids=[(50500.0, 1.0)], asks=[])
     
-    client_binance = SimulatedExchangeClient("binance", obm, simulated_latency_ms=0)
-    client_kraken = SimulatedExchangeClient("kraken", obm, simulated_latency_ms=0)
+    client_binance = SimulatedExchangeClient("binance", obm, simulated_latency_ms=0, error_probability=0.0, partial_fill_probability=0.0)
+    client_kraken = SimulatedExchangeClient("kraken", obm, simulated_latency_ms=0, error_probability=0.0, partial_fill_probability=0.0)
     
     store = InMemoryStateStore()
     notifier = ConsoleNotifier()

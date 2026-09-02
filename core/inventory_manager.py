@@ -19,12 +19,31 @@ class CrossExchangeInventoryManager:
         Calculates total inventory for a specific asset across all tracked exchanges.
         Returns { 'total': float, 'exchanges': { 'exchange_a': float, ... } }
         """
-        # In a real implementation we would fetch all registered exchanges.
-        # For MVP, we'll mock a static list or depend on the strategy to pass it in.
+        total = 0.0
+        balances = {}
         # We assume the reconciliation engine updates the expected balances in state_store.
-        
-        # We need a way to get all balances. For now, we'll assume we know the exchanges.
-        pass
+        # But we need to know which exchanges. Let's assume we have them in config.
+        exchanges = getattr(self, 'exchanges', ['binance', 'kraken'])
+        for ex in exchanges:
+            bals = await self.state_store.get_expected_balances(ex)
+            amt = bals.get(asset, 0.0)
+            balances[ex] = amt
+            total += amt
+        return {'total': total, 'exchanges': balances}
+
+    def get_transfer_routes(self):
+        # In a real environment, query exchange withdrawal status API.
+        # As per rules, we don't enable withdrawal permissions, so we just return supported static routes.
+        return [
+            {"asset": "USDT", "from": "binance", "to": "kraken", "network": "TRC20", "fee": 1.0},
+            {"asset": "USDT", "from": "kraken", "to": "binance", "network": "TRC20", "fee": 1.0}
+        ]
+
+    async def rebalance(self, notifier=None):
+        # We cannot execute withdrawals (safety rule: no withdrawal keys)
+        # So we identify imbalances and log alerts for manual rebalancing.
+        if notifier:
+            await notifier.send_high_priority_alert("MANUAL REBALANCE REQUIRED: Inventory skew threshold exceeded")
 
     async def check_skew(self, exchanges: list, asset: str) -> bool:
         """

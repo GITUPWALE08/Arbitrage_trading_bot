@@ -1,0 +1,45 @@
+Telegram Bot Commands — Arbitrage Bot Control Interface
+Status & Monitoring
+Command	Description
+/status	Overall bot state: running/halted, active strategies, current mode (paper/live), uptime
+/positions	All currently open positions across strategies/exchanges
+/balance	Current balance per exchange, per asset (from latest reconciliation snapshot)
+/pnl	Realized + unrealized P&L — today, this week, all-time
+/pnl_detail [strategy]	Breakdown by strategy (triangular / cross_exchange / funding_rate)
+/opportunities	Recent evaluated opportunities (taken and rejected) with reasons
+/health	Latency stats, WebSocket connection status per exchange, last reconciliation result
+/executions [n]	Last N execution attempts with outcome (completed/unwound/stuck/failed)
+/gate_status	Current Go-Live Gate check results — which criteria pass/fail
+Kill Switches (Section 6.2)
+Command	Description
+/kill_all	Trip the global kill switch — halts all new opportunity evaluation across every strategy and exchange. In-flight executions still complete their unwind logic.
+/kill_strategy <name>	Trip kill switch for one strategy (triangular / cross_exchange / funding_rate)
+/kill_exchange <name>	Trip kill switch for one exchange (e.g., /kill_exchange binance)
+/resume_all	Clear the global kill switch
+/resume_strategy <name>	Clear a strategy-level kill switch
+/resume_exchange <name>	Clear an exchange-level kill switch
+/kill_status	Show which kill switches are currently tripped, by whom (auto/manual), and when
+Position Management
+Command	Description
+/close_position <id>	Manually force-close a specific open position through the unwind path (not a raw order — routes through the state machine)
+/stuck	List any positions currently in STUCK state needing manual attention
+/unstick <id>	Acknowledge/manually resolve a STUCK position after you've verified its real state on the exchange directly
+Configuration (read-only from Telegram — no live threshold edits without a deploy)
+Command	Description
+/config	Show current active thresholds per strategy (min profit %, position sizes, etc.) — display only
+/mode	Show current mode: paper or live, and which exchanges/strategies are in each
+Alerts (incoming, not commands you send — but worth listing what triggers them)
+Alert	Trigger
+🔴 Kill switch tripped	Auto or manual trip on any scope
+🔴 Position STUCK	Unwind failed, needs manual intervention
+🟠 Reconciliation discrepancy	Internal state vs exchange balance mismatch beyond tolerance
+🟠 Circuit breaker tripped	Repeated API errors or stale data on an exchange
+🟠 Margin warning (Strategy C)	Approaching liquidation threshold
+🟢 Execution completed	Successful arbitrage trade closed
+🟢 Daily summary	End-of-day P&L, trade count, gate status
+⚪ Startup / recovery report	Bot restarted — what in-flight executions were found and how resolved (Section 2.3)
+A few implementation notes worth building in from the start:
+Auth: whitelist your own Telegram user ID in the bot's config — never let it respond to commands from arbitrary chat IDs. This is a control surface for real trading, treat it like an admin panel.
+Kill switches should have zero dependency on the main bot process to execute — if the bot is unresponsive or the main loop is stuck, the kill command still needs to work (e.g., write directly to the shared state store/Redis flag that the main loop checks, rather than requiring the bot's own event loop to process the Telegram message).
+Every command interaction gets logged to system_events (spec Section 10) — who triggered what, when. This matters for the same reason the execution logging matters: reconstructing what happened after the fact.
+No command should place a new trade or change thresholds live — the interface is for monitoring and stopping things, not for injecting new trading behavior on the fly. That keeps it aligned with the "no bypass the gate, no shortcuts" spirit of the rest of the spec.
