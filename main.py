@@ -159,24 +159,29 @@ async def run_bot():
     inventory_manager = CrossExchangeInventoryManager(state_store, config)
     
     # 3. Exchange Clients
-    # Check if we are in live mode based on active_mode
-    golive_active = (active_mode == "live")
+    # Check what mode we are in
+    is_live = (active_mode == "live")
+    is_testnet = (active_mode in ["testnet", "demo"])
     
     clients = {}
     ws_tasks = []
     
     obm = OrderBookManager(fast_store=fast_store, stale_threshold_sec=0.5)
     
-    if golive_active:
-        logger.warning("🔴 LIVE TRADING MODE ENGAGED. Using CCXTExchangeClient.")
+    if is_live or is_testnet:
+        if is_live:
+            logger.warning("🚨 LIVE TRADING MODE ENGAGED. Using CCXTExchangeClient.")
+        else:
+            logger.info(f"🧪 {active_mode.upper()} TRADING MODE ENGAGED. Using CCXTExchangeClient with testnet=True.")
+            
         from core.ccxt_client import CCXTExchangeClient
         binance_key = os.getenv("BINANCE_API_KEY", "")
         binance_sec = os.getenv("BINANCE_SECRET", "")
         bybit_key = os.getenv("BYBIT_API_KEY", "")
         bybit_sec = os.getenv("BYBIT_SECRET", "")
         
-        client_binance = CCXTExchangeClient("binance", binance_key, binance_sec, testnet=False)
-        client_bybit = CCXTExchangeClient("bybit", bybit_key, bybit_sec, testnet=False)
+        client_binance = CCXTExchangeClient("binance", binance_key, binance_sec, testnet=is_testnet)
+        client_bybit = CCXTExchangeClient("bybit", bybit_key, bybit_sec, testnet=is_testnet)
         
         clients['binance'] = client_binance
         clients['bybit'] = client_bybit
