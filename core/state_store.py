@@ -82,6 +82,18 @@ class StateStore(ABC):
     async def get_pnl_by_strategy(self, mode: str = None) -> dict:
         pass
 
+
+    @abstractmethod
+    async def get_latest_balances(self) -> dict: pass
+    
+    @abstractmethod
+    async def get_recent_opportunities(self) -> list: pass
+    
+    @abstractmethod
+    async def get_recent_executions(self) -> list: pass
+    
+    @abstractmethod
+    async def get_all_kill_switches(self) -> list: pass
 class InMemoryStateStore(StateStore):
     """
     In-memory state store for testing and paper trading before DB is wired up.
@@ -159,3 +171,8 @@ class InMemoryStateStore(StateStore):
         
     async def get_pnl_by_strategy(self, mode: str = None) -> dict:
         return {}
+
+    async def get_latest_balances(self) -> dict: return {}
+    async def get_recent_opportunities(self) -> list: return []
+    async def get_recent_executions(self) -> list: return []
+    async def get_all_kill_switches(self) -> list: return []

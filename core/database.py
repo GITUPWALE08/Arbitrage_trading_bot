@@ -380,3 +380,37 @@ class DatabaseStateStore(StateStore):
                 if r.realized_profit:
                     pnl_map[r.strategy] = pnl_map.get(r.strategy, 0.0) + r.realized_profit
             return pnl_map
+
+    async def get_latest_balances(self) -> dict:
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select, desc
+            stmt = select(BalancesSnapshot).order_by(desc(BalancesSnapshot.snapshot_at))
+            result = await session.execute(stmt)
+            records = result.scalars().all()
+            # Just group by exchange and asset (naive version for MVP)
+            bals = {}
+            for r in records:
+                if r.exchange not in bals: bals[r.exchange] = {}
+                if r.asset not in bals[r.exchange]: bals[r.exchange][r.asset] = r.balance
+            return bals
+
+    async def get_recent_opportunities(self) -> list:
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select, desc
+            stmt = select(OpportunityRecord).order_by(desc(OpportunityRecord.id)).limit(5)
+            result = await session.execute(stmt)
+            return [{"strategy": r.strategy, "gross_profit": r.gross_profit, "net_profit": r.net_profit} for r in result.scalars().all()]
+
+    async def get_recent_executions(self) -> list:
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select, desc
+            stmt = select(ExecutionRecord).order_by(desc(ExecutionRecord.id)).limit(5)
+            result = await session.execute(stmt)
+            return [{"execution_id": r.execution_id, "strategy": r.strategy, "state": r.state, "profit": r.realized_profit} for r in result.scalars().all()]
+
+    async def get_all_kill_switches(self) -> list:
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select
+            stmt = select(KillSwitchRecord)
+            result = await session.execute(stmt)
+            return [{"scope": r.scope, "scope_value": r.scope_value, "is_tripped": r.is_tripped} for r in result.scalars().all()]
