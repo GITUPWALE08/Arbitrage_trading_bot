@@ -15,7 +15,7 @@ def risk_env():
 async def test_risk_manager_clean_state(risk_env):
     rm, store = risk_env
     
-    can_trade = await rm.check_kill_switches(strategy="triangular", exchanges=["binance", "kraken"])
+    can_trade = await rm.check_kill_switches(strategy="triangular", exchanges=["binance", "bybit"])
     assert can_trade is True
 
 @pytest.mark.asyncio
@@ -45,11 +45,11 @@ async def test_risk_manager_strategy_kill(risk_env):
 async def test_risk_manager_exchange_kill(risk_env):
     rm, store = risk_env
     
-    await rm.trip_kill_switch('exchange', 'kraken', 'liquidation_monitor', 'api down')
+    await rm.trip_kill_switch('exchange', 'bybit', 'liquidation_monitor', 'api down')
     
-    # Anything touching kraken should fail
-    can_trade_kraken = await rm.check_kill_switches(strategy="triangular", exchanges=["binance", "kraken"])
-    assert can_trade_kraken is False
+    # Anything touching bybit should fail
+    can_trade_bybit = await rm.check_kill_switches(strategy="triangular", exchanges=["binance", "bybit"])
+    assert can_trade_bybit is False
     
     # Binance only should pass
     can_trade_binance = await rm.check_kill_switches(strategy="triangular", exchanges=["binance", "okx"])

@@ -15,9 +15,9 @@ async def test_fee_calculator_happy_path():
     )
     
     # Buy side book (Bids) - if we sell, we match against bids
-    kraken_book = OrderBook(
+    bybit_book = OrderBook(
         symbol="BTCUSDT",
-        exchange="kraken",
+        exchange="bybit",
         bids=[(50500.0, 0.8), (50400.0, 1.0)], # 0.8 at 50500, 1.0 at 50400
         asks=[]
     )
@@ -46,7 +46,7 @@ async def test_fee_calculator_happy_path():
     
     legs = [
         {'exchange': 'binance', 'symbol': 'BTCUSDT', 'side': 'buy', 'size': 1.0, 'order_book': binance_book},
-        {'exchange': 'kraken', 'symbol': 'BTCUSDT', 'side': 'sell', 'size': 1.0, 'order_book': kraken_book},
+        {'exchange': 'bybit', 'symbol': 'BTCUSDT', 'side': 'sell', 'size': 1.0, 'order_book': bybit_book},
     ]
     
     result = await calc.calculate_net_profit(

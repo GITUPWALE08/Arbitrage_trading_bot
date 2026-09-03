@@ -18,10 +18,10 @@ def cross_env():
     obm.books[("binance", "BTCUSDT")] = OrderBook(symbol="BTCUSDT", exchange="binance", bids=[(49500.0, 1.0)], asks=[(50000.0, 1.0)])
     
     # Kraken is expensive (Sell here)
-    obm.books[("kraken", "BTCUSDT")] = OrderBook(symbol="BTCUSDT", exchange="kraken", bids=[(50500.0, 1.0)], asks=[])
+    obm.books[("bybit", "BTCUSDT")] = OrderBook(symbol="BTCUSDT", exchange="bybit", bids=[(50500.0, 1.0)], asks=[])
     
     client_binance = SimulatedExchangeClient("binance", obm, simulated_latency_ms=0, error_probability=0.0, partial_fill_probability=0.0)
-    client_kraken = SimulatedExchangeClient("kraken", obm, simulated_latency_ms=0, error_probability=0.0, partial_fill_probability=0.0)
+    client_bybit = SimulatedExchangeClient("bybit", obm, simulated_latency_ms=0, error_probability=0.0, partial_fill_probability=0.0)
     
     store = InMemoryStateStore()
     notifier = ConsoleNotifier()
@@ -31,13 +31,13 @@ def cross_env():
     inv_manager = CrossExchangeInventoryManager(store, {})
     
     config = {
-        'exchanges': ['binance', 'kraken'],
+        'exchanges': ['binance', 'bybit'],
         'min_profit_threshold_pct': 0.25,
         'withdrawal_fee_usd': 5.0
     }
     
     strategy = CrossExchangeArbitrageStrategy(
-        exchange_clients={'binance': client_binance, 'kraken': client_kraken},
+        exchange_clients={'binance': client_binance, 'bybit': client_bybit},
         fee_calculator=fee_calc,
         orderbook_manager=obm,
         state_machine=sm,
@@ -45,13 +45,13 @@ def cross_env():
         config=config
     )
     
-    return strategy, client_binance, client_kraken, sm, store, inv_manager
+    return strategy, client_binance, client_bybit, sm, store, inv_manager
 
 @pytest.mark.asyncio
 async def test_cross_exchange_evaluate_viable(cross_env):
     strategy, _, _, _, _, _ = cross_env
     
-    result = await strategy.evaluate_opportunity("BTCUSDT", "binance", "kraken", 0.5)
+    result = await strategy.evaluate_opportunity("BTCUSDT", "binance", "bybit", 0.5)
     
     assert result['is_viable'] is True
     # Profit: (50500 - 50000) * 0.5 = 250 gross profit
@@ -59,9 +59,9 @@ async def test_cross_exchange_evaluate_viable(cross_env):
 
 @pytest.mark.asyncio
 async def test_cross_exchange_execute_parallel_success(cross_env):
-    strategy, client_binance, client_kraken, sm, store, inv_manager = cross_env
+    strategy, client_binance, client_bybit, sm, store, inv_manager = cross_env
     
-    result = await strategy.evaluate_opportunity("BTCUSDT", "binance", "kraken", 0.5)
+    result = await strategy.evaluate_opportunity("BTCUSDT", "binance", "bybit", 0.5)
     context = ExecutionContext(execution_id="cross_1", strategy="cross_exchange")
     
     await strategy.execute_arbitrage(context, result['legs'])
@@ -71,21 +71,21 @@ async def test_cross_exchange_execute_parallel_success(cross_env):
     
     # Check balances simulating inventory movement
     binance_bals = await client_binance.get_balances()
-    kraken_bals = await client_kraken.get_balances()
+    bybit_bals = await client_bybit.get_balances()
     
     # Binance bought 0.5 BTC
     assert binance_bals["BTC"] == 10.5
     # Kraken sold 0.5 BTC
-    assert kraken_bals["BTC"] == 9.5
+    assert bybit_bals["BTC"] == 9.5
 
 @pytest.mark.asyncio
 async def test_cross_exchange_execute_parallel_partial_failure(cross_env):
-    strategy, client_binance, client_kraken, sm, store, inv_manager = cross_env
+    strategy, client_binance, client_bybit, sm, store, inv_manager = cross_env
     
     # Force Kraken to fail
-    client_kraken.error_prob = 1.0
+    client_bybit.error_prob = 1.0
     
-    result = await strategy.evaluate_opportunity("BTCUSDT", "binance", "kraken", 0.5)
+    result = await strategy.evaluate_opportunity("BTCUSDT", "binance", "bybit", 0.5)
     context = ExecutionContext(execution_id="cross_2", strategy="cross_exchange")
     
     await strategy.execute_arbitrage(context, result['legs'])
@@ -95,18 +95,18 @@ async def test_cross_exchange_execute_parallel_partial_failure(cross_env):
 
 @pytest.mark.asyncio
 async def test_inventory_skew(cross_env):
-    strategy, client_binance, client_kraken, sm, store, inv_manager = cross_env
+    strategy, client_binance, client_bybit, sm, store, inv_manager = cross_env
     
     # Mock some expected balances in state store indicating a massive skew
     await store.set_expected_balances("binance", {"BTC": 90.0})
-    await store.set_expected_balances("kraken", {"BTC": 10.0})
+    await store.set_expected_balances("bybit", {"BTC": 10.0})
     
     # Ideal is 50/50. Binance has 90%, Kraken has 10%. Threshold is 20% diff.
-    is_skewed = await inv_manager.check_skew(["binance", "kraken"], "BTC")
+    is_skewed = await inv_manager.check_skew(["binance", "bybit"], "BTC")
     assert is_skewed is True
     
-    rec = await inv_manager.recommend_rebalance(["binance", "kraken"], "BTC", {"binance": 5.0})
+    rec = await inv_manager.recommend_rebalance(["binance", "bybit"], "BTC", {"binance": 5.0})
     assert rec is not None
     assert rec["from"] == "binance"
-    assert rec["to"] == "kraken"
+    assert rec["to"] == "bybit"
     assert rec["amount"] == 40.0 # 90 - 50

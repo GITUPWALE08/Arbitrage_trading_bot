@@ -2,6 +2,7 @@ import asyncio
 import os
 import random
 from typing import Dict, List
+from datetime import datetime, timezone
 
 from core.database import DatabaseStateStore
 from core.logger import ExecutionLogger, logging
@@ -36,8 +37,8 @@ async def mock_orderbook_websocket_feed(obm: OrderBookManager):
         btc_price = 50000.0 + random.uniform(-10, 10)
         await obm.update_book("binance", "BTCUSDT", [(btc_price - 0.1, 1.5)], [(btc_price + 0.1, 1.5)])
         
-        btc_kraken = btc_price + random.uniform(50, 100) # Arbitrage gap!
-        await obm.update_book("kraken", "BTCUSDT", [(btc_kraken - 0.1, 1.0)], [(btc_kraken + 0.1, 1.0)])
+        btc_bybit = btc_price + random.uniform(50, 100) # Arbitrage gap!
+        await obm.update_book("bybit", "BTCUSDT", [(btc_bybit - 0.1, 1.0)], [(btc_bybit + 0.1, 1.0)])
         
         await obm.update_book("binance", "ETHBTC", [(0.05, 10.0)], [(0.0501, 10.0)])
         await obm.update_book("binance", "ETHUSDT", [(btc_price * 0.05, 10.0)], [(btc_price * 0.05 + 1.0, 10.0)])
@@ -128,7 +129,7 @@ async def run_bot():
         'slippage_buffer_pct': 0.05,
         'partial_fill_min_viable_pct': 50.0,
         'withdrawal_fee_usd': 5.0,
-        'exchanges': ['binance', 'kraken']
+        'exchanges': ['binance', 'bybit']
     }
 
     telegram_token = os.getenv("TELEGRAM_TOKEN", "")
@@ -167,27 +168,27 @@ async def run_bot():
         from core.ccxt_client import CCXTExchangeClient
         binance_key = os.getenv("BINANCE_API_KEY", "")
         binance_sec = os.getenv("BINANCE_SECRET", "")
-        kraken_key = os.getenv("KRAKEN_API_KEY", "")
-        kraken_sec = os.getenv("KRAKEN_SECRET", "")
+        bybit_key = os.getenv("BYBIT_API_KEY", "")
+        bybit_sec = os.getenv("BYBIT_SECRET", "")
         
         client_binance = CCXTExchangeClient("binance", binance_key, binance_sec, testnet=False)
-        client_kraken = CCXTExchangeClient("kraken", kraken_key, kraken_sec, testnet=False)
+        client_bybit = CCXTExchangeClient("bybit", bybit_key, bybit_sec, testnet=False)
         
         clients['binance'] = client_binance
-        clients['kraken'] = client_kraken
+        clients['bybit'] = client_bybit
         
         # We need to watch symbols used by strategies
         symbols_to_watch = ["BTCUSDT", "ETHBTC", "ETHUSDT"] # Just a subset for now
         for sym in symbols_to_watch:
             ws_tasks.append(asyncio.create_task(client_binance.watch_order_book_loop(sym, obm, ws_manager)))
             if sym == "BTCUSDT":
-                ws_tasks.append(asyncio.create_task(client_kraken.watch_order_book_loop(sym, obm, ws_manager)))
+                ws_tasks.append(asyncio.create_task(client_bybit.watch_order_book_loop(sym, obm, ws_manager)))
     else:
         logger.info("📄 PAPER TRADING MODE. Using SimulatedExchangeClient.")
         client_binance = SimulatedExchangeClient("binance", obm, simulated_latency_ms=100)
-        client_kraken = SimulatedExchangeClient("kraken", obm, simulated_latency_ms=100)
+        client_bybit = SimulatedExchangeClient("bybit", obm, simulated_latency_ms=100)
         clients['binance'] = client_binance
-        clients['kraken'] = client_kraken
+        clients['bybit'] = client_bybit
         ws_tasks.append(asyncio.create_task(mock_orderbook_websocket_feed(obm)))
         
     recon_manager = ReconciliationManager(state_store, clients, notifier)
