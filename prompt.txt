@@ -1,20 +1,47 @@
-[9/3/2026 4:04 PM] Prime Alpha || NEVER DM FIRST: /start
-[9/3/2026 4:04 PM] Prime Alpha || NEVER DM FIRST: hello
-[9/3/2026 5:47 PM] Prime Alpha Arbitrage Bot: 🚨 Bot initialized and connected to Telegram.
-[9/3/2026 5:47 PM] Prime Alpha Arbitrage Bot: 🚨 Bot initialized and connected to Telegram.
-[9/3/2026 5:50 PM] Prime Alpha || NEVER DM FIRST: /status
-[9/3/2026 5:50 PM] Prime Alpha Arbitrage Bot: Bot Status: ACTIVE 🟢
-Trading Mode: PAPER ONLY 📄
-[9/3/2026 5:50 PM] Prime Alpha || NEVER DM FIRST: /mode
-[9/3/2026 5:50 PM] Prime Alpha || NEVER DM FIRST: /balance
-[9/3/2026 5:50 PM] Prime Alpha || NEVER DM FIRST: /pnl
-[9/3/2026 5:50 PM] Prime Alpha Arbitrage Bot: Total Realized P&L: $0.00
-[9/3/2026 5:50 PM] Prime Alpha || NEVER DM FIRST: /opportunities
-[9/3/2026 5:51 PM] Prime Alpha || NEVER DM FIRST: /executions
-[9/3/2026 5:51 PM] Prime Alpha || NEVER DM FIRST: /switch_demo
-[9/3/2026 5:51 PM] Prime Alpha || NEVER DM FIRST: /positions
 [9/3/2026 5:51 PM] Prime Alpha Arbitrage Bot: No active positions.
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: 🚨 Bot initialized and connected to Telegram.
+[9/3/2026 6:01 PM] Prime Alpha || NEVER DM FIRST: /status
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: Bot Status: ACTIVE 🟢
+Trading Mode: PAPER ONLY 📄
+[9/3/2026 6:01 PM] Prime Alpha || NEVER DM FIRST: /switch_demo
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: Mode switch to demo initiated. Global kill switch engaged. Restarting once safe...
+[9/3/2026 6:01 PM] Prime Alpha || NEVER DM FIRST: /positions
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: 🚨 Bot initialized and connected to Telegram.
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: 🚨 CRITICAL RECONCILIATION DISCREPANCY on binance: {'USDT': {'expected': 0.0, 'actual': 100000.0, 'diff': 100000.0}, 'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.0, 'actual': 100.0, 'diff': 100.0}}. Auto-halting exchange.
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: 🚨 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
+Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'USDT': {'expected': 0.0, 'actual': 100000.0, 'diff': 100000.0}, 'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.0, 'actual': 100.0, 'diff': 100.0}}. Auto-halting exchange.
+By: reconciliation_engine
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: No active positions.
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: 🚨 CRITICAL RECONCILIATION DISCREPANCY on bybit: {'USDT': {'expected': 0.0, 'actual': 100000.0, 'diff': 100000.0}, 'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.0, 'actual': 100.0, 'diff': 100.0}}. Auto-halting exchange.
+[9/3/2026 6:01 PM] Prime Alpha Arbitrage Bot: 🚨 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
+Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'USDT': {'expected': 0.0, 'actual': 100000.0, 'diff': 100000.0}, 'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.0, 'actual': 100.0, 'diff': 100.0}}. Auto-halting exchange.
+By: reconciliation_engine
+[9/3/2026 6:02 PM] Prime Alpha || NEVER DM FIRST: /balance
+[9/3/2026 6:02 PM] Prime Alpha Arbitrage Bot: Latest Balances:
+
+BYBIT:
+  ETH: 100.0
+  BTC: 10.0
+  USDT: 100000.0
+
+BINANCE:
+  ETH: 100.0
+  BTC: 10.0
+  USDT: 100000.0
+
+KRAKEN:
+  BTC: 10.0
+  ETH: 100.0
+  USDT: 100000.0
+[9/3/2026 6:02 PM] Prime Alpha || NEVER DM FIRST: /pnl
+[9/3/2026 6:02 PM] Prime Alpha Arbitrage Bot: Total Realized P&L: $0.00
+[9/3/2026 6:02 PM] Prime Alpha || NEVER DM FIRST: /opportunities
+[9/3/2026 6:02 PM] Prime Alpha || NEVER DM FIRST: /executions
 
 
 
-telegram bot chat
+
+
+
+the prblem with this is that I feel these numbers arehardcoded, because the kraken api is not given so where did it get the numbers
+and there where no executions
