@@ -139,18 +139,20 @@ class DatabaseStateStore(StateStore):
         self.SessionLocal = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
         
     async def initialize_db(self):
+        # 1. Create tables outside of the migration transaction
         async with self.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)            
-            # Migration for mode column
-            tables = ["executions", "reconciliation_log", "execution_legs", "opportunities", "balances_snapshot", "system_events", "margin_monitoring"]
-            from sqlalchemy import text as sqa_text
-            for table in tables:
-                try:
-                    await conn.execute(sqa_text(f"ALTER TABLE {table} ADD COLUMN mode VARCHAR DEFAULT 'simulated'"))
-                except Exception:
-                    pass
-
+            await conn.run_sync(Base.metadata.create_all)
             
+        # 2. Run migrations one by one in autocommit mode or separate blocks
+        tables = ["executions", "reconciliation_log", "execution_legs", "opportunities", "balances_snapshot", "system_events", "margin_monitoring"]
+        from sqlalchemy import text as sqa_text
+        for table in tables:
+            try:
+                async with self.engine.begin() as conn:
+                    await conn.execute(sqa_text(f"ALTER TABLE {table} ADD COLUMN mode VARCHAR DEFAULT 'simulated'"))
+            except Exception:
+                pass
+
 
     async def get_system_setting(self, key: str) -> str:
         async with self.SessionLocal() as session:

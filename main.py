@@ -1,5 +1,7 @@
 import asyncio
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import random
 from typing import Dict, List
 from datetime import datetime, timezone

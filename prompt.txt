@@ -1,53 +1,57 @@
- sudo journalctl -u arbitragebot -r
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: HALTING TRADING on bybit due to reconciliation failure.
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: By: reconciliation_engine
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'USDT': {'expected': 0>
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: HALTING TRADING on binance due to reconciliation failure.
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: By: reconciliation_engine
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'USDT': {'expected':>
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
-Sep 03 15:44:32 ip-172-31-21-190 python[136609]: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not provided. Telegram bot disabled.
-Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
-Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 22.873s CPU time, 60.2M memory peak, 0B memory swap peak.
-Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: Stopped arbitragebot.service - Crypto Arbitrage Bot.
-Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: arbitragebot.service: Deactivated successfully.
-Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: Stopping arbitragebot.service - Crypto Arbitrage Bot...
-Sep 03 15:43:32 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
-Sep 03 15:43:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:43:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
-Sep 03 15:43:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
-Sep 03 15:43:32 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
-Sep 03 15:43:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:43:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': >
-Sep 03 15:43:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
-Sep 03 15:42:32 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
-Sep 03 15:42:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:42:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
-Sep 03 15:42:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
-Sep 03 15:42:32 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
-Sep 03 15:42:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:42:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': >
-Sep 03 15:42:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
-Sep 03 15:41:32 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
-Sep 03 15:41:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:41:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
-Sep 03 15:41:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
-Sep 03 15:41:31 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
-Sep 03 15:41:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:41:31 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': >
-Sep 03 15:41:31 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
-Sep 03 15:40:31 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
-Sep 03 15:40:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:40:31 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
-Sep 03 15:40:31 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
-Sep 03 15:40:31 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
-Sep 03 15:40:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:40:31 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': >
-Sep 03 15:40:31 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
-Sep 03 15:39:31 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
-Sep 03 15:39:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
-Sep 03 15:39:31 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
-Sep 03 15:39:31 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
-Sep 03 15:39:31 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
-Sep 03 15:39:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+$ sudo journalctl -u arbitragebot -r
+Sep 03 16:18:17 ip-172-31-21-190 python[143150]: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not provided. Telegram bot disabled.
+Sep 03 16:18:16 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
+Sep 03 16:18:16 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 7.170s CPU time.
+Sep 03 16:18:16 ip-172-31-21-190 systemd[1]: Stopped arbitragebot.service - Crypto Arbitrage Bot.
+Sep 03 16:18:16 ip-172-31-21-190 systemd[1]: arbitragebot.service: Deactivated successfully.
+Sep 03 16:18:16 ip-172-31-21-190 systemd[1]: Stopping arbitragebot.service - Crypto Arbitrage Bot...
+Sep 03 16:14:35 ip-172-31-21-190 python[142415]: HALTING TRADING on bybit due to reconciliation failure.
+Sep 03 16:14:35 ip-172-31-21-190 python[142415]: By: reconciliation_engine
+Sep 03 16:14:35 ip-172-31-21-190 python[142415]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'ETH': {'expected': 0.0, 'actual': 100.0, 'diff': 100.0}, 'BTC': {'expected': >
+Sep 03 16:14:35 ip-172-31-21-190 python[142415]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
+Sep 03 16:14:35 ip-172-31-21-190 python[142415]: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not provided. Telegram bot disabled.
+Sep 03 16:14:34 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
+Sep 03 16:14:34 ip-172-31-21-190 systemd[1]: arbitragebot.service: Scheduled restart job, restart counter is at 1.
+Sep 03 16:14:29 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 52.838s CPU time.
+Sep 03 16:14:29 ip-172-31-21-190 systemd[1]: arbitragebot.service: Failed with result 'exit-code'.
+Sep 03 16:14:29 ip-172-31-21-190 systemd[1]: arbitragebot.service: Main process exited, code=exited, status=1/FAILURE
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]: (Background on this error at: https://sqlalche.me/e/20/e3q8)
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]: [parameters: ('pending_mode',)]
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]: WHERE system_settings."key" = ?]
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]: FROM system_settings
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]: [SQL: SELECT system_settings."key", system_settings.value
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: system_settings
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:              ^^^^^^^^^^
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     result = function()
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/aiosqlite/core.py", line 115, in run
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:            ^^^^^^^^^^^^
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     return await future
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/aiosqlite/core.py", line 132, in _execute
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     return await self._conn._execute(fn, *args, **kwargs)
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/aiosqlite/cursor.py", line 40, in _execute
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     await self._execute(self._cursor.execute, sql, parameters)
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/aiosqlite/cursor.py", line 48, in execute
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:             ^^^^^^^^^^^^
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     value = await result
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in gree>
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 127, in awai>
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     self.await_(_cursor.execute(operation, parameters))
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py", line 128, in e>
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     raise error
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py", line 298, in _>
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     self._adapt_connection._handle_exception(error)
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py", line 146, in e>
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     cursor.execute(statement, parameters)
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     self.dialect.do_execute(
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1960, in _exec_single_c>
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2335, in _handle_dbapi_>
+Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     self._handle_dbapi_exception(
+
+
+
+    I actually provided the telegram chat ID and tokenbut maybe the problem is thatthe token is in the form <chat ID>:<a token>
