@@ -1,7 +1,9 @@
 import asyncio
 import os
+import sys
 from dotenv import load_dotenv
-load_dotenv()
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+load_dotenv(env_path)
 import random
 from typing import Dict, List
 from datetime import datetime, timezone

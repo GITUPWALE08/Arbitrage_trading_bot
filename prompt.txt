@@ -1,4 +1,10 @@
-$ sudo journalctl -u arbitragebot -r
+ sudo journalctl -u arbitragebot -r
+Sep 03 16:27:35 ip-172-31-21-190 python[144927]: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not provided. Telegram bot disabled.
+Sep 03 16:27:34 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
+Sep 03 16:27:34 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 16.651s CPU time.
+Sep 03 16:27:34 ip-172-31-21-190 systemd[1]: Stopped arbitragebot.service - Crypto Arbitrage Bot.
+Sep 03 16:27:34 ip-172-31-21-190 systemd[1]: arbitragebot.service: Deactivated successfully.
+Sep 03 16:27:34 ip-172-31-21-190 systemd[1]: Stopping arbitragebot.service - Crypto Arbitrage Bot...
 Sep 03 16:18:17 ip-172-31-21-190 python[143150]: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not provided. Telegram bot disabled.
 Sep 03 16:18:16 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
 Sep 03 16:18:16 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 7.170s CPU time.
@@ -45,13 +51,3 @@ Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_
 Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     self._adapt_connection._handle_exception(error)
 Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py", line 146, in e>
 Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     cursor.execute(statement, parameters)
-Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 924, in do_execute
-Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     self.dialect.do_execute(
-Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1960, in _exec_single_c>
-Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-Sep 03 16:14:29 ip-172-31-21-190 python[136609]:   File "/home/ubuntu/Arbitrage_trading_bot/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2335, in _handle_dbapi_>
-Sep 03 16:14:29 ip-172-31-21-190 python[136609]:     self._handle_dbapi_exception(
-
-
-
-    I actually provided the telegram chat ID and tokenbut maybe the problem is thatthe token is in the form <chat ID>:<a token>
