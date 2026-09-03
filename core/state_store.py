@@ -73,6 +73,15 @@ class StateStore(ABC):
     async def save_funding_rate(self, exchange: str, symbol: str, rate: float, annualized_pct: float):
         pass
 
+
+    @abstractmethod
+    async def get_pnl(self, mode: str = None) -> float:
+        pass
+        
+    @abstractmethod
+    async def get_pnl_by_strategy(self, mode: str = None) -> dict:
+        pass
+
 class InMemoryStateStore(StateStore):
     """
     In-memory state store for testing and paper trading before DB is wired up.
@@ -143,3 +152,10 @@ class InMemoryStateStore(StateStore):
     async def save_margin_monitoring(self, position_id: str, exchange: str, symbol: str, margin_ratio: float, liquidation_price: float = None): pass
     async def save_funding_rate(self, exchange: str, symbol: str, rate: float, annualized_pct: float): pass
 
+
+    
+    async def get_pnl(self, mode: str = None) -> float:
+        return 0.0
+        
+    async def get_pnl_by_strategy(self, mode: str = None) -> dict:
+        return {}

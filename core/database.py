@@ -250,14 +250,19 @@ class DatabaseStateStore(StateStore):
             } for r in records]
             
     async def get_expected_balances(self, exchange: str) -> dict:
-        """
-        Derives expected balance by scanning completed/active trades.
-        For MVP, we just store expected balances in a separate generic table or just mock it,
-        but for real, we query executions where data contains fills.
-        We'll mock this specific read for now or assume a separate table tracks balance updates.
-        """
-        # Section 10 actually only strictly mandates executions, recon log, kill switches.
-        return {}
+        mode = getattr(self, "active_mode", "simulated")
+        async with self.SessionLocal() as session:
+            stmt = select(BalancesSnapshot).where(
+                BalancesSnapshot.exchange == exchange,
+                BalancesSnapshot.mode == mode
+            ).order_by(BalancesSnapshot.snapshot_at.asc())
+            result = await session.execute(stmt)
+            records = result.scalars().all()
+            
+            balances = {}
+            for r in records:
+                balances[r.asset] = r.balance
+            return balances
         
     async def save_reconciliation_log(self, exchange: str, expected: dict, actual: dict, discrepancies: dict, severity: str):
         async with self.SessionLocal() as session:
@@ -344,3 +349,32 @@ class DatabaseStateStore(StateStore):
             record = FundingRateHistory(exchange=exchange, symbol=symbol, rate=rate, annualized_pct=annualized_pct)
             session.add(record)
             await session.commit()
+
+    async def get_pnl(self, mode: str = None) -> float:
+        mode = mode or getattr(self, "active_mode", "simulated")
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select
+            stmt = select(ExecutionRecord).where(
+                ExecutionRecord.state == "COMPLETED",
+                ExecutionRecord.mode == mode
+            )
+            result = await session.execute(stmt)
+            records = result.scalars().all()
+            return sum([r.realized_profit for r in records if r.realized_profit])
+            
+    async def get_pnl_by_strategy(self, mode: str = None) -> dict:
+        mode = mode or getattr(self, "active_mode", "simulated")
+        async with self.SessionLocal() as session:
+            from sqlalchemy import select
+            stmt = select(ExecutionRecord).where(
+                ExecutionRecord.state == "COMPLETED",
+                ExecutionRecord.mode == mode
+            )
+            result = await session.execute(stmt)
+            records = result.scalars().all()
+            
+            pnl_map = {}
+            for r in records:
+                if r.realized_profit:
+                    pnl_map[r.strategy] = pnl_map.get(r.strategy, 0.0) + r.realized_profit
+            return pnl_map

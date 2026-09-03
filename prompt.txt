@@ -1,54 +1,53 @@
-sudo journalctl -u arbitragebot -r
-Sep 03 15:15:31 ip-172-31-21-190 systemd[1]: arbitragebot.service: Failed with result 'exit-code'.
-Sep 03 15:15:31 ip-172-31-21-190 systemd[1]: arbitragebot.service: Main process exited, code=exited, status=1/FAILURE
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]: NameError: name 'datetime' is not defined. Did you forget to import 'datetime'?
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:                           ^^^^^^^^
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:     paper_trading_start = datetime.now(timezone.utc)
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:   File "/home/ubuntu/Arbitrage_trading_bot/main.py", line 202, in DummyJournal
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:     class DummyJournal:
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:   File "/home/ubuntu/Arbitrage_trading_bot/main.py", line 199, in run_bot
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:            ^^^^^^^^^^^^^^^
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:     return future.result()
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:   File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:     return self._loop.run_until_complete(task)
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:   File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:            ^^^^^^^^^^^^^^^^
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:     return runner.run(main)
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:   File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:     asyncio.run(run_bot())
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]:   File "/home/ubuntu/Arbitrage_trading_bot/main.py", line 231, in <module>
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]: Traceback (most recent call last):
-Sep 03 15:15:30 ip-172-31-21-190 python[132721]: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not provided. Telegram bot disabled.
-Sep 03 15:15:30 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
-Sep 03 15:15:30 ip-172-31-21-190 systemd[1]: arbitragebot.service: Scheduled restart job, restart counter is at 13689.
-Sep 03 15:15:25 ip-172-31-21-190 systemd[1]: arbitragebot.service: Failed with result 'exit-code'.
-Sep 03 15:15:25 ip-172-31-21-190 systemd[1]: arbitragebot.service: Main process exited, code=exited, status=1/FAILURE
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]: NameError: name 'datetime' is not defined. Did you forget to import 'datetime'?
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:                           ^^^^^^^^
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:     paper_trading_start = datetime.now(timezone.utc)
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:   File "/home/ubuntu/Arbitrage_trading_bot/main.py", line 202, in DummyJournal
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:     class DummyJournal:
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:   File "/home/ubuntu/Arbitrage_trading_bot/main.py", line 199, in run_bot
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:            ^^^^^^^^^^^^^^^
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:     return future.result()
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:   File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:     return self._loop.run_until_complete(task)
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:   File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:            ^^^^^^^^^^^^^^^^
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:     return runner.run(main)
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:   File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:     asyncio.run(run_bot())
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]:   File "/home/ubuntu/Arbitrage_trading_bot/main.py", line 231, in <module>
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]: Traceback (most recent call last):
-Sep 03 15:15:24 ip-172-31-21-190 python[132714]: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not provided. Telegram bot disabled.
-Sep 03 15:15:24 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
-Sep 03 15:15:24 ip-172-31-21-190 systemd[1]: arbitragebot.service: Scheduled restart job, restart counter is at 13688.
-Sep 03 15:15:18 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 1.010s CPU time.
-Sep 03 15:15:18 ip-172-31-21-190 systemd[1]: arbitragebot.service: Failed with result 'exit-code'.
-Sep 03 15:15:18 ip-172-31-21-190 systemd[1]: arbitragebot.service: Main process exited, code=exited, status=1/FAILURE
-Sep 03 15:15:18 ip-172-31-21-190 python[132706]: NameError: name 'datetime' is not defined. Did you forget to import 'datetime'?
-Sep 03 15:15:18 ip-172-31-21-190 python[132706]:                           ^^^^^^^^
-Sep 03 15:15:18 ip-172-31-21-190 python[132706]:     paper_trading_start = datetime.now(timezone.utc)
-lines 1-52
+ sudo journalctl -u arbitragebot -r
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: HALTING TRADING on bybit due to reconciliation failure.
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: By: reconciliation_engine
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'USDT': {'expected': 0>
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: HALTING TRADING on binance due to reconciliation failure.
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: By: reconciliation_engine
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'USDT': {'expected':>
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
+Sep 03 15:44:32 ip-172-31-21-190 python[136609]: TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not provided. Telegram bot disabled.
+Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
+Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 22.873s CPU time, 60.2M memory peak, 0B memory swap peak.
+Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: Stopped arbitragebot.service - Crypto Arbitrage Bot.
+Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: arbitragebot.service: Deactivated successfully.
+Sep 03 15:44:31 ip-172-31-21-190 systemd[1]: Stopping arbitragebot.service - Crypto Arbitrage Bot...
+Sep 03 15:43:32 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
+Sep 03 15:43:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:43:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
+Sep 03 15:43:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
+Sep 03 15:43:32 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
+Sep 03 15:43:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:43:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': >
+Sep 03 15:43:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
+Sep 03 15:42:32 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
+Sep 03 15:42:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:42:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
+Sep 03 15:42:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
+Sep 03 15:42:32 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
+Sep 03 15:42:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:42:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': >
+Sep 03 15:42:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
+Sep 03 15:41:32 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
+Sep 03 15:41:32 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:41:32 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
+Sep 03 15:41:32 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
+Sep 03 15:41:31 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
+Sep 03 15:41:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:41:31 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': >
+Sep 03 15:41:31 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
+Sep 03 15:40:31 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
+Sep 03 15:40:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:40:31 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
+Sep 03 15:40:31 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
+Sep 03 15:40:31 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
+Sep 03 15:40:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:40:31 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on binance: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': >
+Sep 03 15:40:31 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for binance
+Sep 03 15:39:31 ip-172-31-21-190 python[133963]: HALTING TRADING on bybit due to reconciliation failure.
+Sep 03 15:39:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
+Sep 03 15:39:31 ip-172-31-21-190 python[133963]: Reason: CRITICAL RECONCILIATION DISCREPANCY on bybit: {'BTC': {'expected': 0.0, 'actual': 10.0, 'diff': 10.0}, 'ETH': {'expected': 0.>
+Sep 03 15:39:31 ip-172-31-21-190 python[133963]: 🛑 EXCHANGE KILL SWITCH TRIPPED for bybit
+Sep 03 15:39:31 ip-172-31-21-190 python[133963]: HALTING TRADING on binance due to reconciliation failure.
+Sep 03 15:39:31 ip-172-31-21-190 python[133963]: By: reconciliation_engine
