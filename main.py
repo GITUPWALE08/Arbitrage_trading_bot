@@ -183,6 +183,10 @@ async def run_bot():
         client_binance = CCXTExchangeClient("binance", binance_key, binance_sec, testnet=is_testnet)
         client_bybit = CCXTExchangeClient("bybit", bybit_key, bybit_sec, testnet=is_testnet)
         
+        # Load markets before starting websockets
+        await client_binance.initialize()
+        await client_bybit.initialize()
+        
         clients['binance'] = client_binance
         clients['bybit'] = client_bybit
         

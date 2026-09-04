@@ -25,6 +25,14 @@ class CCXTExchangeClient(ExchangeClient):
         if testnet:
             self.client.set_sandbox_mode(True)
 
+    async def initialize(self):
+        """Loads exchange markets before use."""
+        try:
+            await self.client.load_markets()
+            logger.info(f"Loaded markets for {self.exchange_id}")
+        except Exception as e:
+            logger.error(f"Failed to load markets for {self.exchange_id}: {e}")
+
     async def close(self):
         await self.client.close()
 
