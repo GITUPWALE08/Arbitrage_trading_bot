@@ -1,12 +1,85 @@
-Before anything else, fix item #5: implement the startup crash-recovery check per spec Section 2.3. Right now run_bot() doesn't query get_active_executions() on boot, which means any execution left in a non-terminal state (from a crash OR a mode-switch restart) is never picked up, re-verified against the exchange, or resolved into UNWOUND/STUCK before normal trading resumes. This is more serious than a standalone gap — the entire mode-switching design assumes restart = automatic recovery coverage, so until this is fixed, every demo↔testnet↔live switch has zero protection for trades that were mid-execution during the restart.
+[9/4/2026 8:44 AM] Prime Alpha || NEVER DM FIRST: /executions
+[9/4/2026 11:23 AM] Prime Alpha Arbitrage Bot: 🚨 Bot initialized and connected to Telegram.
+[9/4/2026 11:23 AM] Prime Alpha Arbitrage Bot: 🚨 Bot Started. Recovery Report:
+No in-flight executions found.
+[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /mode
+[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: Current active mode: DEMO
+[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /status
+[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: Bot Status: ACTIVE 🟢
+Trading Mode: PAPER ONLY 📄
+[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /positions
+[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: No active positions.
+[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /balance
+[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: Latest Balances:
 
-Implement this now: on startup, before the bot resumes opportunity scanning, query for all executions not in a terminal state (COMPLETED, FAILED, UNWOUND), and for each one, re-fetch actual order/balance status from the relevant exchange and resolve it into the correct terminal state or STUCK with an alert, per spec Section 2.3. Log a recovery report on every startup showing what was found, even if nothing was in-flight.
+BYBIT:
+  BTC: 10.0
+  ETH: 100.0
+  USDT: 100000.0
 
-Once that's fixed, also clarify and show me code for the following:
+BINANCE:
+  BTC: 10.0
+  ETH: 100.0
+  USDT: 100000.0
+[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /pnl
+[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: Total Realized P&L: $0.00
+[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /opportunities
+[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /executions
 
-In the fee calculator, you described the book walk as "naive." Clarify exactly what that means, and show me the full walk_order_book function. I want to confirm it's actually walking real depth correctly and not cutting a corner the word "naive" might be hinting at.
-If I set BOT_MODE=live directly as an environment variable and start the process without ever going through the /switch_live Telegram command, does the bot refuse to start, or does it start and only block individual trades inside the loop? Show me the actual startup sequence in main.py for the live branch, and confirm whether the Go-Live Gate is checked before any live client is initialized, not just before individual trades execute.
-For triangular arbitrage's partial-fill resizing, you only showed the branch for if prev_leg['side'] == 'buy'. Show me the corresponding sell-side branch. Also confirm explicitly: is the partial_fill_min_viable_pct threshold from the config actually wired in anywhere, so that a leg filled below that percentage triggers an unwind instead of a resize-and-continue? Show me that specific check, or confirm it's missing.
-For funding rate arbitrage, confirm whether margin ratio / liquidation risk is wired in as a hard override on the exit logic, independent of and overriding the funding-trend and basis-risk exit conditions, per spec Section 17 (liquidation risk should force a close regardless of what the funding outlook says). Show me where in evaluate_exit() (or elsewhere) this check happens, or confirm it doesn't exist yet.
 
-Give me the same honest format as before — for each of these four items plus the recovery-flow fix, tell me exactly what you changed or found, with file/function references. Don't round anything up to "done" if it's partial.
+
+sudo journalctl -u arbitragebot -r
+Sep 04 10:24:04 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:24:04 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:24:04 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:24:02 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:24:02 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:24:02 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:24:01 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:24:01 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:24:01 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:24:01 ip-172-31-21-190 python[337610]: Error watching BTC/USDT on bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":1788517440>
+Sep 04 10:23:59 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:59 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:59 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:57 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:57 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:57 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:55 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:55 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:55 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:55 ip-172-31-21-190 python[337610]: Error watching BTC/USDT on bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":1788517435>
+Sep 04 10:23:54 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:54 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:54 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:52 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:52 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:52 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:50 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:50 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:50 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:49 ip-172-31-21-190 python[337610]: Error watching BTC/USDT on bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":1788517429>
+Sep 04 10:23:48 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:48 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:48 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:47 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:47 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:47 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Failed to fetch balances for bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":17885174>
+Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Error fetching balances from bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":17885174>
+Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 10:23:44 ip-172-31-21-190 python[337610]: Failed to fetch balances for binance: binance {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+Sep 04 10:23:44 ip-172-31-21-190 python[337610]: Error fetching balances from binance: binance {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+Sep 04 10:23:43 ip-172-31-21-190 python[337610]: Error watching BTC/USDT on bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":1788517423>
+Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
+Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 4min 995ms CPU time.
+Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: Stopped arbitragebot.service - Crypto Arbitrage Bot.
+Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: arbitragebot.service: Deactivated successfully.
+Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: Stopping arbitragebot.service - Crypto Arbitrage Bot...
+Sep 04 10:23:40 ip-172-31-21-190 python[317327]: Network error watching ETHBTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnecti>
+Sep 04 10:23:40 ip-172-31-21-190 python[317327]: Network error watching ETHUSDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnect>
+Sep 04 10:23:40 ip-172-31-21-190 python[317327]: Network error watching BTCUSDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnect>
+lines 1-52
+
