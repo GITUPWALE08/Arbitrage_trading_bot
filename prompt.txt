@@ -1,85 +1,39 @@
-[9/4/2026 8:44 AM] Prime Alpha || NEVER DM FIRST: /executions
-[9/4/2026 11:23 AM] Prime Alpha Arbitrage Bot: 🚨 Bot initialized and connected to Telegram.
-[9/4/2026 11:23 AM] Prime Alpha Arbitrage Bot: 🚨 Bot Started. Recovery Report:
-No in-flight executions found.
-[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /mode
-[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: Current active mode: DEMO
-[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /status
-[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: Bot Status: ACTIVE 🟢
-Trading Mode: PAPER ONLY 📄
-[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /positions
-[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: No active positions.
-[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /balance
-[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: Latest Balances:
+Est. Total Value
+0.12332319
+BTC
+≈ $9,999.77
+Spot
+Hide assets <1 USD
+Coin
+Amount
+Available
+Action
+image
+USDT
+5,000.00
+$5,000.00
+5,000.00
+Trade
+image
+USDC
+5,000.00
+$4,999.77
+5,000.00
+Trade
+image
+BNB
+0.00
+$0.00
+0.00
+Trade
+image
+ETH
+0.00
+$0.00
+0.00
+Trade
 
-BYBIT:
-  BTC: 10.0
-  ETH: 100.0
-  USDT: 100000.0
-
-BINANCE:
-  BTC: 10.0
-  ETH: 100.0
-  USDT: 100000.0
-[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /pnl
-[9/4/2026 11:24 AM] Prime Alpha Arbitrage Bot: Total Realized P&L: $0.00
-[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /opportunities
-[9/4/2026 11:24 AM] Prime Alpha || NEVER DM FIRST: /executions
 
 
 
-sudo journalctl -u arbitragebot -r
-Sep 04 10:24:04 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:24:04 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:24:04 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:24:02 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:24:02 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:24:02 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:24:01 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:24:01 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:24:01 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:24:01 ip-172-31-21-190 python[337610]: Error watching BTC/USDT on bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":1788517440>
-Sep 04 10:23:59 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:59 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:59 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:57 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:57 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:57 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:55 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:55 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:55 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:55 ip-172-31-21-190 python[337610]: Error watching BTC/USDT on bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":1788517435>
-Sep 04 10:23:54 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:54 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:54 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:52 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:52 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:52 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:50 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:50 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:50 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:49 ip-172-31-21-190 python[337610]: Error watching BTC/USDT on bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":1788517429>
-Sep 04 10:23:48 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:48 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:48 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:47 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:47 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:47 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Failed to fetch balances for bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":17885174>
-Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Error fetching balances from bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":17885174>
-Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
-Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
-Sep 04 10:23:45 ip-172-31-21-190 python[337610]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
-Sep 04 10:23:44 ip-172-31-21-190 python[337610]: Failed to fetch balances for binance: binance {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-Sep 04 10:23:44 ip-172-31-21-190 python[337610]: Error fetching balances from binance: binance {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-Sep 04 10:23:43 ip-172-31-21-190 python[337610]: Error watching BTC/USDT on bybit: bybit {"retCode":10003,"retMsg":"API key is invalid.","result":{},"retExtInfo":{},"time":1788517423>
-Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
-Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 4min 995ms CPU time.
-Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: Stopped arbitragebot.service - Crypto Arbitrage Bot.
-Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: arbitragebot.service: Deactivated successfully.
-Sep 04 10:23:41 ip-172-31-21-190 systemd[1]: Stopping arbitragebot.service - Crypto Arbitrage Bot...
-Sep 04 10:23:40 ip-172-31-21-190 python[317327]: Network error watching ETHBTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnecti>
-Sep 04 10:23:40 ip-172-31-21-190 python[317327]: Network error watching ETHUSDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnect>
-Sep 04 10:23:40 ip-172-31-21-190 python[317327]: Network error watching BTCUSDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnect>
-lines 1-52
-
+https://demo.binance.com/en/my/wallet/demo/main
