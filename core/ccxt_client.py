@@ -13,7 +13,7 @@ class CCXTExchangeClient(ExchangeClient):
     """
     Live trading ExchangeClient implementation wrapping ccxt.pro.
     """
-    def __init__(self, exchange_id: str, api_key: str, secret: str, testnet: bool = False):
+    def __init__(self, exchange_id: str, api_key: str, secret: str, environment: str = 'live'):
         self.exchange_id = exchange_id
         # Initialize ccxt.pro exchange
         exchange_class = getattr(ccxtpro, exchange_id)
@@ -22,8 +22,18 @@ class CCXTExchangeClient(ExchangeClient):
             'secret': secret,
             'enableRateLimit': True,
         })
-        if testnet:
+        
+        if environment == 'testnet':
             self.client.set_sandbox_mode(True)
+        elif environment == 'demo':
+            # For Bybit Demo Trading or Binance Demo, we manually override the URLs
+            if 'demo' in self.client.urls:
+                self.client.urls['api'] = self.client.urls['demo']
+            elif 'demotrading' in self.client.urls:
+                self.client.urls['api'] = self.client.urls['demotrading']
+            else:
+                # Fallback to testnet if no explicit demo URLs exist
+                self.client.set_sandbox_mode(True)
 
     async def initialize(self):
         """Loads exchange markets before use."""

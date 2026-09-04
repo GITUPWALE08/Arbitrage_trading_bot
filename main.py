@@ -171,17 +171,25 @@ async def run_bot():
     if is_live or is_testnet:
         if is_live:
             logger.warning("🚨 LIVE TRADING MODE ENGAGED. Using CCXTExchangeClient.")
+            env_prefix = "LIVE"
+            environment = "live"
+        elif active_mode == "demo":
+            logger.info("🧪 DEMO TRADING MODE ENGAGED. Using CCXTExchangeClient with demo routing.")
+            env_prefix = "DEMO"
+            environment = "demo"
         else:
-            logger.info(f"🧪 {active_mode.upper()} TRADING MODE ENGAGED. Using CCXTExchangeClient with testnet=True.")
+            logger.info("🧪 TESTNET TRADING MODE ENGAGED. Using CCXTExchangeClient with testnet=True.")
+            env_prefix = "TESTNET"
+            environment = "testnet"
             
         from core.ccxt_client import CCXTExchangeClient
-        binance_key = os.getenv("BINANCE_API_KEY", "")
-        binance_sec = os.getenv("BINANCE_SECRET", "")
-        bybit_key = os.getenv("BYBIT_API_KEY", "")
-        bybit_sec = os.getenv("BYBIT_SECRET", "")
+        binance_key = os.getenv(f"BINANCE_{env_prefix}_API_KEY", "")
+        binance_sec = os.getenv(f"BINANCE_{env_prefix}_SECRET_KEY", "")
+        bybit_key = os.getenv(f"BYBIT_{env_prefix}_API_KEY", "")
+        bybit_sec = os.getenv(f"BYBIT_{env_prefix}_SECRET_KEY", "")
         
-        client_binance = CCXTExchangeClient("binance", binance_key, binance_sec, testnet=is_testnet)
-        client_bybit = CCXTExchangeClient("bybit", bybit_key, bybit_sec, testnet=is_testnet)
+        client_binance = CCXTExchangeClient("binance", binance_key, binance_sec, environment=environment)
+        client_bybit = CCXTExchangeClient("bybit", bybit_key, bybit_sec, environment=environment)
         
         # Load markets before starting websockets
         await client_binance.initialize()
