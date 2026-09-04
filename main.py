@@ -187,10 +187,10 @@ async def run_bot():
         clients['bybit'] = client_bybit
         
         # We need to watch symbols used by strategies
-        symbols_to_watch = ["BTCUSDT", "ETHBTC", "ETHUSDT"] # Just a subset for now
+        symbols_to_watch = ["BTC/USDT", "ETH/BTC", "ETH/USDT"] # CCXT requires a slash
         for sym in symbols_to_watch:
             ws_tasks.append(asyncio.create_task(client_binance.watch_order_book_loop(sym, obm, ws_manager)))
-            if sym == "BTCUSDT":
+            if sym == "BTC/USDT":
                 ws_tasks.append(asyncio.create_task(client_bybit.watch_order_book_loop(sym, obm, ws_manager)))
     else:
         logger.info("📄 PAPER TRADING MODE. Using SimulatedExchangeClient.")
