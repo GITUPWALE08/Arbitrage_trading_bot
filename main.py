@@ -30,24 +30,7 @@ from gate.go_live_gate import GoLiveGate, TradeJournalMock, GateConfig
 logger = logging.getLogger("Main")
 logger.setLevel(logging.INFO)
 
-async def mock_orderbook_websocket_feed(obm: OrderBookManager):
-    """
-    Simulates a WebSocket feed updating the order books every 100ms.
-    In production, this is replaced by ccxt.pro's watch_order_book().
-    """
-    logger.info("Starting WebSocket feed simulation...")
-    while True:
-        # Mock some dynamic prices around 50k for BTC
-        btc_price = 50000.0 + random.uniform(-10, 10)
-        await obm.update_book("binance", "BTCUSDT", [(btc_price - 0.1, 1.5)], [(btc_price + 0.1, 1.5)])
-        
-        btc_bybit = btc_price + random.uniform(50, 100) # Arbitrage gap!
-        await obm.update_book("bybit", "BTCUSDT", [(btc_bybit - 0.1, 1.0)], [(btc_bybit + 0.1, 1.0)])
-        
-        await obm.update_book("binance", "ETHBTC", [(0.05, 10.0)], [(0.0501, 10.0)])
-        await obm.update_book("binance", "ETHUSDT", [(btc_price * 0.05, 10.0)], [(btc_price * 0.05 + 1.0, 10.0)])
-        
-        await asyncio.sleep(0.1)
+
 
 async def main_trading_loop(
     strategies: Dict,
@@ -205,13 +188,26 @@ async def run_bot():
             if sym == "BTC/USDT":
                 ws_tasks.append(asyncio.create_task(client_bybit.watch_order_book_loop(sym, obm, ws_manager)))
     else:
-        logger.info("📄 PAPER TRADING MODE. Using SimulatedExchangeClient.")
+        logger.info("📄 PAPER TRADING MODE. Using SimulatedExchangeClient with real live public market data.")
         client_binance = SimulatedExchangeClient("binance", obm, simulated_latency_ms=100)
         client_bybit = SimulatedExchangeClient("bybit", obm, simulated_latency_ms=100)
         clients['binance'] = client_binance
         clients['bybit'] = client_bybit
-        ws_tasks.append(asyncio.create_task(mock_orderbook_websocket_feed(obm)))
         
+        # Instantiate public CCXT clients strictly for the websocket orderbook feeds
+        from core.ccxt_client import CCXTExchangeClient
+        public_binance = CCXTExchangeClient("binance", public_only=True)
+        public_bybit = CCXTExchangeClient("bybit", public_only=True)
+        
+        await public_binance.initialize()
+        await public_bybit.initialize()
+        
+        symbols_to_watch = ["BTC/USDT", "ETH/BTC", "ETH/USDT"]
+        for sym in symbols_to_watch:
+            ws_tasks.append(asyncio.create_task(public_binance.watch_order_book_loop(sym, obm, ws_manager)))
+            if sym == "BTC/USDT":
+                ws_tasks.append(asyncio.create_task(public_bybit.watch_order_book_loop(sym, obm, ws_manager)))
+    
     recon_manager = ReconciliationManager(state_store, clients, notifier)
     recon_manager.risk_manager = risk_manager # Circular dep injection
 

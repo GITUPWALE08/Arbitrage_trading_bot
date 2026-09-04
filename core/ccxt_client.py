@@ -13,15 +13,17 @@ class CCXTExchangeClient(ExchangeClient):
     """
     Live trading ExchangeClient implementation wrapping ccxt.pro.
     """
-    def __init__(self, exchange_id: str, api_key: str, secret: str, environment: str = 'live'):
+    def __init__(self, exchange_id: str, api_key: str = "", secret: str = "", environment: str = 'live', public_only: bool = False):
         self.exchange_id = exchange_id
         # Initialize ccxt.pro exchange
         exchange_class = getattr(ccxtpro, exchange_id)
-        self.client = exchange_class({
-            'apiKey': api_key,
-            'secret': secret,
-            'enableRateLimit': True,
-        })
+        
+        config = {'enableRateLimit': True}
+        if not public_only and api_key and secret:
+            config['apiKey'] = api_key
+            config['secret'] = secret
+            
+        self.client = exchange_class(config)
         
         if environment == 'testnet':
             self.client.set_sandbox_mode(True)
