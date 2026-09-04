@@ -64,6 +64,7 @@ class TelegramNotifier(Notifier):
                                                 ("mode", self.cmd_mode),
                   ("switch_demo", self.cmd_switch_demo),
                   ("switch_testnet", self.cmd_switch_testnet),
+                  ("switch_simulated", self.cmd_switch_simulated),
                 ("switch_live", self.cmd_switch_live),
                 ("confirm_live", self.cmd_confirm_live),
                 ("pnl_demo", self.cmd_pnl_demo),
@@ -373,6 +374,9 @@ class TelegramNotifier(Notifier):
 
     async def cmd_switch_testnet(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self._handle_switch(update, context, "testnet")
+
+    async def cmd_switch_simulated(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self._handle_switch(update, context, "simulated")
 
     async def cmd_switch_live(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not await self._auth(update): return
