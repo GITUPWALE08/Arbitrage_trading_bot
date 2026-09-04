@@ -153,6 +153,22 @@ class TriangularArbitrageStrategy:
                     prev_filled_qty = prev_leg['filled_qty']
                     if prev_leg['side'] == 'buy':
                         target_size = prev_filled_qty # We bought X base, can only use X for next step
+                    else:
+                        # We sold X base. We received X * price in quote asset.
+                        # The next leg is going to use that quote asset to buy/sell.
+                        # target_size calculation for the next leg's base asset qty relies on the new available capital.
+                        prev_price = prev_leg.get('price', 0.0)
+                        received_quote = prev_filled_qty * prev_price
+                        
+                        # We need the current price of this new leg to convert the available quote asset into a target size
+                        # For a market order, we estimate the size based on the leg's pre-calculated 'price' or the orderbook's top
+                        # For MVP, we will use the leg's original ratio (target_size / original_capital) to scale it down.
+                        original_target = leg['size']
+                        original_prev_qty = prev_leg['intended_size']
+                        
+                        if original_prev_qty > 0:
+                            scale_factor = prev_filled_qty / original_prev_qty
+                            target_size = original_target * scale_factor
                 
                 order = await self.client.place_order(
                     symbol=leg['symbol'],
