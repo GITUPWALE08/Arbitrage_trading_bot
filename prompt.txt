@@ -1,39 +1,55 @@
-Est. Total Value
-0.12332319
-BTC
-≈ $9,999.77
-Spot
-Hide assets <1 USD
-Coin
-Amount
-Available
-Action
-image
-USDT
-5,000.00
-$5,000.00
-5,000.00
-Trade
-image
-USDC
-5,000.00
-$4,999.77
-5,000.00
-Trade
-image
-BNB
-0.00
-$0.00
-0.00
-Trade
-image
-ETH
-0.00
-$0.00
-0.00
-Trade
-
-
-
-
-https://demo.binance.com/en/my/wallet/demo/main
+$ sudo systemctl restart arbitragebot
+ubuntu@ip-172-31-21-190:~/Arbitrage_trading_bot$ sudo journalctl -u arbitragebot -r
+Sep 04 11:04:29 ip-172-31-21-190 python[342695]: Failed to fetch balances for binance: binance requires "apiKey" credential
+Sep 04 11:04:29 ip-172-31-21-190 python[342695]: Error fetching balances from binance: binance requires "apiKey" credential
+Sep 04 11:04:24 ip-172-31-21-190 systemd[1]: Started arbitragebot.service - Crypto Arbitrage Bot.
+Sep 04 11:04:24 ip-172-31-21-190 systemd[1]: arbitragebot.service: Consumed 3.365s CPU time.
+Sep 04 11:04:24 ip-172-31-21-190 systemd[1]: Stopped arbitragebot.service - Crypto Arbitrage Bot.
+Sep 04 11:04:24 ip-172-31-21-190 systemd[1]: arbitragebot.service: Deactivated successfully.
+Sep 04 11:04:24 ip-172-31-21-190 systemd[1]: Stopping arbitragebot.service - Crypto Arbitrage Bot...
+Sep 04 11:04:23 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:23 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:23 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:23 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:21 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:21 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:21 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:21 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:20 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:20 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:20 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:20 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:18 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:18 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:18 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:18 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:17 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:16 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:16 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:16 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:15 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:14 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:14 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:14 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:13 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:13 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:13 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:13 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:12 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:11 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:11 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:11 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:10 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:09 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:09 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:09 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:09 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:07 ip-172-31-21-190 python[342635]: Network error watching ETH/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/2'. Reconnec>
+Sep 04 11:04:07 ip-172-31-21-190 python[342635]: Network error watching ETH/BTC on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/1'. Reconnect>
+Sep 04 11:04:07 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on binance: 404, message='Invalid response status', url='wss://testnet.binance.vision/ws/0'. Reconnec>
+Sep 04 11:04:07 ip-172-31-21-190 python[342635]: Network error watching BTC/USDT on bybit: 'aiohttp._websocket.reader_c.WebSocketReader' object has no attribute 'parse_frame'. Reconn>
+Sep 04 11:04:07 ip-172-31-21-190 python[342635]: Failed to fetch balances for bybit: bybit requires "apiKey" credential
+Sep 04 11:04:07 ip-172-31-21-190 python[342635]: Error fetching balances from bybit: bybit requires "apiKey" credential
+Sep 04 11:04:07 ip-172-31-21-190 python[342635]: Failed to fetch balances for binance: binance requires "apiKey" credential
+Sep 04 11:04:07 ip-172-31-21-190 python[342635]: Error fetching balances from binance: binance requires "apiKey" credential
+lines 1-52
