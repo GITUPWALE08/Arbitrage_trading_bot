@@ -90,7 +90,7 @@ class StateStore(ABC):
     async def get_recent_opportunities(self, limit: int = 5) -> list: pass
     
     @abstractmethod
-    async def get_recent_executions(self) -> list: pass
+    async def get_recent_executions(self, limit: int = 5) -> list: pass
     
     @abstractmethod
     async def get_all_kill_switches(self) -> list: pass
@@ -176,5 +176,5 @@ class InMemoryStateStore(StateStore):
 
     async def get_latest_balances(self, mode: str = None) -> dict: return {}
     async def get_recent_opportunities(self, limit: int = 5) -> list: return []
-    async def get_recent_executions(self) -> list: return []
+    async def get_recent_executions(self, limit: int = 5) -> list: return []
     async def get_all_kill_switches(self) -> list: return []

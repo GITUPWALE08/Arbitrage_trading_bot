@@ -407,10 +407,10 @@ class DatabaseStateStore(StateStore):
                 "profit": r.net_profit_estimate
             } for r in result.scalars().all()]
 
-    async def get_recent_executions(self) -> list:
+    async def get_recent_executions(self, limit: int = 5) -> list:
         async with self.SessionLocal() as session:
             from sqlalchemy import select, desc
-            stmt = select(ExecutionRecord).order_by(desc(ExecutionRecord.id)).limit(5)
+            stmt = select(ExecutionRecord).order_by(desc(ExecutionRecord.id)).limit(limit)
             result = await session.execute(stmt)
             return [{"execution_id": r.execution_id, "strategy": r.strategy, "state": r.state, "profit": r.realized_profit} for r in result.scalars().all()]
 
