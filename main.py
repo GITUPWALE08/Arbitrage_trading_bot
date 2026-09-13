@@ -98,6 +98,8 @@ async def run_bot():
     if pending_mode:
         await state_store.set_system_setting("active_mode", pending_mode)
         await state_store.delete_system_setting("pending_mode")
+        # Lift the global kill switch that was engaged to safely reboot
+        await state_store.set_kill_switch("global", "global", False, "System", "Mode switch complete")
         logger.info(f"Applied pending mode switch: {pending_mode}")
         
     active_mode = await state_store.get_system_setting("active_mode")
