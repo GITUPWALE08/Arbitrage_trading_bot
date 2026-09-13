@@ -13,6 +13,7 @@ class CrossExchangeInventoryManager:
     def __init__(self, state_store: StateStore, config: Dict):
         self.state_store = state_store
         self.rebalance_skew_threshold_pct = config.get('rebalance_skew_threshold_pct', 20.0)
+        self.exchanges = config.get('exchanges', ['binance', 'bybit'])
         
     async def get_total_inventory(self, asset: str) -> Dict[str, float]:
         """
@@ -22,9 +23,7 @@ class CrossExchangeInventoryManager:
         total = 0.0
         balances = {}
         # We assume the reconciliation engine updates the expected balances in state_store.
-        # But we need to know which exchanges. Let's assume we have them in config.
-        exchanges = getattr(self, 'exchanges', ['binance', 'kraken'])
-        for ex in exchanges:
+        for ex in self.exchanges:
             bals = await self.state_store.get_expected_balances(ex)
             amt = bals.get(asset, 0.0)
             balances[ex] = amt
@@ -35,8 +34,8 @@ class CrossExchangeInventoryManager:
         # In a real environment, query exchange withdrawal status API.
         # As per rules, we don't enable withdrawal permissions, so we just return supported static routes.
         return [
-            {"asset": "USDT", "from": "binance", "to": "kraken", "network": "TRC20", "fee": 1.0},
-            {"asset": "USDT", "from": "kraken", "to": "binance", "network": "TRC20", "fee": 1.0}
+            {"asset": "USDT", "from": "binance", "to": "bybit", "network": "TRC20", "fee": 1.0},
+            {"asset": "USDT", "from": "bybit", "to": "binance", "network": "TRC20", "fee": 1.0}
         ]
 
     async def rebalance(self, notifier=None):
