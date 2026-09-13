@@ -225,8 +225,8 @@ class DatabaseStateStore(StateStore):
                 "realized_profit": record.realized_profit
             }
 
-    async def get_active_executions(self) -> List[Dict[str, Any]]:
-        mode = self.active_mode
+    async def get_active_executions(self, mode: str = None) -> List[Dict[str, Any]]:
+        target_mode = mode or self.active_mode
         active_states = [
             ExecutionState.VALIDATING.name, 
             ExecutionState.EXECUTING_LEG_1.name, 
@@ -239,7 +239,7 @@ class DatabaseStateStore(StateStore):
         ]
         
         async with self.SessionLocal() as session:
-            stmt = select(ExecutionRecord).where(ExecutionRecord.state.in_(active_states), ExecutionRecord.mode == mode)
+            stmt = select(ExecutionRecord).where(ExecutionRecord.state.in_(active_states), ExecutionRecord.mode == target_mode)
             result = await session.execute(stmt)
             records = result.scalars().all()
             
@@ -381,10 +381,11 @@ class DatabaseStateStore(StateStore):
                     pnl_map[r.strategy] = pnl_map.get(r.strategy, 0.0) + r.realized_profit
             return pnl_map
 
-    async def get_latest_balances(self) -> dict:
+    async def get_latest_balances(self, mode: str = None) -> dict:
+        target_mode = mode or self.active_mode
         async with self.SessionLocal() as session:
             from sqlalchemy import select, desc
-            stmt = select(BalancesSnapshot).order_by(desc(BalancesSnapshot.snapshot_at))
+            stmt = select(BalancesSnapshot).where(BalancesSnapshot.mode == target_mode).order_by(desc(BalancesSnapshot.snapshot_at))
             result = await session.execute(stmt)
             records = result.scalars().all()
             # Just group by exchange and asset (naive version for MVP)
@@ -394,12 +395,17 @@ class DatabaseStateStore(StateStore):
                 if r.asset not in bals[r.exchange]: bals[r.exchange][r.asset] = r.balance
             return bals
 
-    async def get_recent_opportunities(self) -> list:
+    async def get_recent_opportunities(self, limit: int = 5) -> list:
         async with self.SessionLocal() as session:
             from sqlalchemy import select, desc
-            stmt = select(OpportunityRecord).order_by(desc(OpportunityRecord.id)).limit(5)
+            stmt = select(OpportunityRecord).order_by(desc(OpportunityRecord.id)).limit(limit)
             result = await session.execute(stmt)
-            return [{"strategy": r.strategy, "gross_profit": r.gross_profit, "net_profit": r.net_profit} for r in result.scalars().all()]
+            return [{
+                "symbols": r.symbols, 
+                "strategy": r.strategy, 
+                "action": r.action_taken, 
+                "profit": r.net_profit_estimate
+            } for r in result.scalars().all()]
 
     async def get_recent_executions(self) -> list:
         async with self.SessionLocal() as session:

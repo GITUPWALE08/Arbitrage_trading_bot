@@ -452,10 +452,33 @@ class TelegramNotifier(Notifier):
         pnl = await self.state_store.get_pnl(mode=mode)
         await update.message.reply_text(f"Total Realized P&L ({mode}): ${pnl:.2f}")
 
-    async def cmd_positions_demo(self, update, context): await update.message.reply_text("Positions for demo mode")
-    async def cmd_positions_testnet(self, update, context): await update.message.reply_text("Positions for testnet mode")
-    async def cmd_positions_live(self, update, context): await update.message.reply_text("Positions for live mode")
-    async def cmd_balance_demo(self, update, context): await update.message.reply_text("Balances for demo mode")
-    async def cmd_balance_testnet(self, update, context): await update.message.reply_text("Balances for testnet mode")
-    async def cmd_balance_live(self, update, context): await update.message.reply_text("Balances for live mode")
+    async def _positions_mode(self, update, context, mode):
+        if not await self._auth(update): return
+        if not hasattr(self.state_store, 'get_active_executions'): return
+        execs = await self.state_store.get_active_executions(mode=mode)
+        if not execs:
+            await update.message.reply_text(f"No active positions for {mode} mode.")
+            return
+        msg = f"Active Positions ({mode}):\n" + "\n".join([f"{e['execution_id'][:8]} ({e['strategy']}): {e['state']}" for e in execs])
+        await update.message.reply_text(msg)
 
+    async def _balance_mode(self, update, context, mode):
+        if not await self._auth(update): return
+        if not hasattr(self.state_store, 'get_latest_balances'): return
+        bals = await self.state_store.get_latest_balances(mode=mode)
+        if not bals:
+            await update.message.reply_text(f"No balance snapshots found for {mode} mode.")
+            return
+        msg = f"Latest Balances ({mode}):\n"
+        for exc, assets in bals.items():
+            msg += f"\n{exc.upper()}:\n"
+            for ast, bal in assets.items():
+                msg += f"  {ast}: {bal}\n"
+        await update.message.reply_text(msg)
+
+    async def cmd_positions_demo(self, update, context): await self._positions_mode(update, context, "demo")
+    async def cmd_positions_testnet(self, update, context): await self._positions_mode(update, context, "testnet")
+    async def cmd_positions_live(self, update, context): await self._positions_mode(update, context, "live")
+    async def cmd_balance_demo(self, update, context): await self._balance_mode(update, context, "demo")
+    async def cmd_balance_testnet(self, update, context): await self._balance_mode(update, context, "testnet")
+    async def cmd_balance_live(self, update, context): await self._balance_mode(update, context, "live")

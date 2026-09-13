@@ -23,7 +23,7 @@ class StateStore(ABC):
         pass
 
     @abstractmethod
-    async def get_active_executions(self) -> List[ExecutionContext]:
+    async def get_active_executions(self, mode: str = None) -> List[ExecutionContext]:
         """
         Retrieve all execution contexts that are not in a terminal state.
         Useful for crash recovery (Section 2.3).
@@ -84,10 +84,10 @@ class StateStore(ABC):
 
 
     @abstractmethod
-    async def get_latest_balances(self) -> dict: pass
+    async def get_latest_balances(self, mode: str = None) -> dict: pass
     
     @abstractmethod
-    async def get_recent_opportunities(self) -> list: pass
+    async def get_recent_opportunities(self, limit: int = 5) -> list: pass
     
     @abstractmethod
     async def get_recent_executions(self) -> list: pass
@@ -108,13 +108,15 @@ class InMemoryStateStore(StateStore):
         context = self._store.get(execution_id)
         return context.model_copy(deep=True) if context else None
 
-    async def get_active_executions(self) -> List[ExecutionContext]:
+    async def get_active_executions(self, mode: str = None) -> List[ExecutionContext]:
         from core.execution_engine import ExecutionState
         terminal_states = {ExecutionState.COMPLETED, ExecutionState.FAILED, ExecutionState.UNWOUND}
         
         active = []
         for context in self._store.values():
             if context.state not in terminal_states:
+                if mode is not None and getattr(context, "mode", None) != mode:
+                    continue
                 active.append(context.model_copy(deep=True))
         return active
 
@@ -172,7 +174,7 @@ class InMemoryStateStore(StateStore):
     async def get_pnl_by_strategy(self, mode: str = None) -> dict:
         return {}
 
-    async def get_latest_balances(self) -> dict: return {}
-    async def get_recent_opportunities(self) -> list: return []
+    async def get_latest_balances(self, mode: str = None) -> dict: return {}
+    async def get_recent_opportunities(self, limit: int = 5) -> list: return []
     async def get_recent_executions(self) -> list: return []
     async def get_all_kill_switches(self) -> list: return []
