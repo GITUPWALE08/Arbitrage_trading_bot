@@ -67,9 +67,9 @@ async def main_trading_loop(
                 # 3. Evaluate Strategy A (Triangular)
                 tri_strat = strategies['triangular']
                 tri_def = [
-                    {'symbol': 'BTCUSDT', 'side': 'buy'},
-                    {'symbol': 'ETHBTC', 'side': 'buy'},
-                    {'symbol': 'ETHUSDT', 'side': 'sell'}
+                    {'symbol': 'BTC/USDT', 'side': 'buy'},
+                    {'symbol': 'ETH/BTC', 'side': 'buy'},
+                    {'symbol': 'ETH/USDT', 'side': 'sell'}
                 ]
                 tri_eval = await tri_strat.evaluate_triangle(tri_def, 200.0)
                 
