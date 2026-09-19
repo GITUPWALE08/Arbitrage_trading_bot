@@ -132,8 +132,8 @@ class CrossExchangeArbitrageStrategy:
         
         buy_res, sell_res = results
         
-        buy_success = not isinstance(buy_res, Exception) and buy_res.get('filled_qty', 0) > 0
-        sell_success = not isinstance(sell_res, Exception) and sell_res.get('filled_qty', 0) > 0
+        buy_success = not isinstance(buy_res, Exception) and buy_res.get('filled_qty', buy_res.get('filled', 0)) > 0
+        sell_success = not isinstance(sell_res, Exception) and sell_res.get('filled_qty', sell_res.get('filled', 0)) > 0
         
         filled_legs = []
         if buy_success:
@@ -151,7 +151,7 @@ class CrossExchangeArbitrageStrategy:
             
             # Route resulting balance changes through Inventory Manager
             exchanges = [buy_leg['exchange'], sell_leg['exchange']]
-            base_asset = buy_leg['symbol'].replace("USDT", "")
+            base_asset = buy_leg['symbol'].split('/')[0]  # "BTC" from "BTC/USDT"
             await self.inventory_manager.check_skew(exchanges, base_asset)
             
         else:
@@ -168,7 +168,7 @@ class CrossExchangeArbitrageStrategy:
         
         try:
             for order in filled_legs:
-                filled_qty = order.get('filled_qty', 0)
+                filled_qty = order.get('filled_qty', order.get('filled', 0))
                 if filled_qty <= 0:
                     continue
                     

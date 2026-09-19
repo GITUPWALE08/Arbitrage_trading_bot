@@ -108,8 +108,9 @@ class SimulatedExchangeClient(ExchangeClient):
         simulated_slippage = abs(avg_price - naive_price) / naive_price if naive_price and avg_price else 0
 
         # Update simulated balances
-        base_asset = symbol.replace("USDT", "") # Simple split for MVP
-        quote_asset = "USDT"
+        parts = symbol.split('/')
+        base_asset = parts[0]  # e.g. "BTC" from "BTC/USDT"
+        quote_asset = parts[1] if len(parts) > 1 else "USDT"
         
         if side == "buy":
             self.balances[base_asset] = self.balances.get(base_asset, 0) + filled_qty

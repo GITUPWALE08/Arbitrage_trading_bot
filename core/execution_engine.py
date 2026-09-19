@@ -67,7 +67,9 @@ class ExecutionStateMachine:
         self.logger.log_transition(context.execution_id, old_state.value, new_state.value, context.data)
 
         # 2.1 Rule: Every state transition is written to persistent storage synchronously before the next action executes.
-        await self.state_store.save_execution_state(context)
+        await self.state_store.save_execution_state(
+            context.execution_id, context.strategy, context.state, context.data
+        )
 
         # 2.1 Rule: STUCK must trigger an immediate high-priority alert and halt further trading
         if new_state == ExecutionState.STUCK:

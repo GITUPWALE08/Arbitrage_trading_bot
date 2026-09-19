@@ -177,7 +177,7 @@ class TriangularArbitrageStrategy:
                     quantity=target_size
                 )
                 
-                filled_qty = order.get("filled_qty", 0.0)
+                filled_qty = order.get("filled_qty", order.get("filled", 0.0))
                 order['intended_size'] = target_size
                 filled_legs.append(order)
                 
@@ -190,9 +190,9 @@ class TriangularArbitrageStrategy:
                     "side": leg['side'],
                     "intended_qty": target_size,
                     "filled_qty": filled_qty,
-                    "avg_fill_price": order.get("price", 0.0),
-                    "fee_paid": order.get("fee_paid", 0.0),
-                    "order_id": order.get("order_id", "unknown"),
+                    "avg_fill_price": order.get("average_price", order.get("price", 0.0)),
+                    "fee_paid": order.get("fee_paid", order.get("fee", 0.0)),
+                    "order_id": order.get("id", order.get("order_id", "unknown")),
                     "status": "FILLED" if filled_qty >= target_size else "PARTIAL",
                 }
                 await self.state_machine.state_store.save_execution_leg(leg_data)

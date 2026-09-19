@@ -17,7 +17,7 @@ from core.inventory_manager import CrossExchangeInventoryManager
 from core.risk_manager import RiskManager
 from core.reconciliation import ReconciliationManager
 from core.liquidation_monitor import LiquidationMonitor
-from core.execution_engine import ExecutionStateMachine
+from core.execution_engine import ExecutionStateMachine, ExecutionContext, ExecutionState
 
 from paper_trading.simulator import SimulatedExchangeClient
 
@@ -37,12 +37,17 @@ async def main_trading_loop(
     risk_manager: RiskManager,
     gate: GoLiveGate,
     fast_store: any,
-    state_store=None
+    state_store=None,
+    state_machine=None
 ):
     """
-    The main decision loop. Evaluates strategies sequentially or in parallel.
+    The main decision loop. Evaluates strategies and executes trades.
+    In paper/simulated mode: executes via SimulatedExchangeClient (no gate check).
+    In live mode: requires Go-Live Gate to pass before executing.
     """
     logger.info("Bot is alive and entering main trading loop.")
+    active_mode = getattr(state_store, 'active_mode', 'simulated')
+    is_live = (active_mode == 'live')
     
     while True:
 
@@ -61,10 +66,9 @@ async def main_trading_loop(
             await asyncio.sleep(5)
             continue
             
-        # 2. Acquire distributed lock for evaluation (Section 11)
+        # 2. Evaluate Strategy A (Triangular)
         if await fast_store.acquire_lock("triangular_eval", timeout_sec=2):
             try:
-                # 3. Evaluate Strategy A (Triangular)
                 tri_strat = strategies['triangular']
                 tri_def = [
                     {'symbol': 'BTC/USDT', 'side': 'buy'},
@@ -74,37 +78,81 @@ async def main_trading_loop(
                 tri_eval = await tri_strat.evaluate_triangle(tri_def, 200.0)
                 
                 if tri_eval.get('is_viable'):
-                    passed_gate, _ = gate.evaluate('triangular')
-                    if not passed_gate:
-                        logger.debug("Go-Live Gate prevents live execution. Strategy A is viable in paper.")
+                    # In paper mode, execute directly. In live mode, require gate.
+                    should_execute = True
+                    if is_live:
+                        passed_gate, gate_reason = gate.evaluate('triangular')
+                        if not passed_gate:
+                            logger.info(f"Go-Live Gate blocks live triangular execution: {gate_reason}")
+                            should_execute = False
+                    
+                    if should_execute and state_machine:
+                        import uuid
+                        ctx = ExecutionContext(
+                            execution_id=str(uuid.uuid4()),
+                            strategy="triangular",
+                            data={"triangle_def": [d['symbol'] for d in tri_def]}
+                        )
+                        await state_machine.transition(ctx, ExecutionState.OPPORTUNITY_DETECTED)
+                        try:
+                            await tri_strat.execute_triangle(ctx, tri_eval.get('legs', []))
+                            logger.info(f"Triangular execution {ctx.execution_id[:8]} completed: {ctx.state}")
+                        except Exception as e:
+                            logger.error(f"Triangular execution failed: {e}")
+            except Exception as e:
+                logger.error(f"Error evaluating Strategy A: {e}")
             finally:
                 await fast_store.release_lock("triangular_eval")
                 
-        # 3.5 Evaluate Strategy B (Cross-Exchange)
+        # 3. Evaluate Strategy B (Cross-Exchange) — check BOTH directions
         if await fast_store.acquire_lock("cross_exchange_eval", timeout_sec=2):
             try:
                 ce_strat = strategies['cross_exchange']
-                # Evaluate BTC/USDT spread between binance and bybit
-                ce_eval = await ce_strat.evaluate_opportunity('BTC/USDT', 'binance', 'bybit', 0.05)
-                if ce_eval.get('is_viable'):
-                    passed_gate, _ = gate.evaluate('cross_exchange')
-                    if not passed_gate:
-                        logger.debug("Go-Live Gate prevents live execution. Strategy B is viable in paper.")
+                
+                # Get current BTC price for dynamic sizing
+                obm = ce_strat.orderbook_manager
+                binance_book = await obm.get_book('binance', 'BTC/USDT')
+                btc_price = binance_book.asks[0][0] if binance_book and binance_book.asks else 60000.0
+                dynamic_size = min(ce_strat.max_position_size_usd / btc_price, 0.01)  # Cap at sensible amount
+                
+                # Check both directions
+                for buy_ex, sell_ex in [('binance', 'bybit'), ('bybit', 'binance')]:
+                    ce_eval = await ce_strat.evaluate_opportunity('BTC/USDT', buy_ex, sell_ex, dynamic_size)
+                    if ce_eval.get('is_viable'):
+                        should_execute = True
+                        if is_live:
+                            passed_gate, gate_reason = gate.evaluate('cross_exchange')
+                            if not passed_gate:
+                                logger.info(f"Go-Live Gate blocks live cross-exchange execution: {gate_reason}")
+                                should_execute = False
+                        
+                        if should_execute and state_machine:
+                            import uuid
+                            ctx = ExecutionContext(
+                                execution_id=str(uuid.uuid4()),
+                                strategy="cross_exchange",
+                                data={"symbol": "BTC/USDT", "buy_exchange": buy_ex, "sell_exchange": sell_ex}
+                            )
+                            await state_machine.transition(ctx, ExecutionState.OPPORTUNITY_DETECTED)
+                            try:
+                                await ce_strat.execute_arbitrage(ctx, ce_eval.get('legs', []))
+                                logger.info(f"Cross-exchange execution {ctx.execution_id[:8]} completed: {ctx.state}")
+                            except Exception as e:
+                                logger.error(f"Cross-exchange execution failed: {e}")
+                        break  # Only execute the first viable direction per cycle
             except Exception as e:
                 logger.error(f"Error evaluating Strategy B: {e}")
             finally:
                 await fast_store.release_lock("cross_exchange_eval")
                 
-        # 4. Evaluate Strategy C (Funding Rate)
+        # 4. Evaluate Strategy C (Funding Rate) — evaluation only for now (no execution method yet)
         if await fast_store.acquire_lock("funding_rate_eval", timeout_sec=2):
             try:
                 fr_strat = strategies['funding_rate']
-                # Evaluate BTC spot vs BTC perpetual
                 fr_eval = await fr_strat.evaluate_entry('BTC/USDT', 'BTC/USDT:USDT')
                 if fr_eval.get('enter'):
-                    passed_gate, _ = gate.evaluate('funding_rate')
-                    if not passed_gate:
-                        logger.debug("Go-Live Gate prevents live execution. Strategy C is viable in paper.")
+                    logger.info(f"Funding rate opportunity detected: avg annualized {fr_eval.get('avg_annualized_pct', 0):.2f}%, basis {fr_eval.get('basis_pct', 0):.4f}%")
+                    # TODO: Implement execute_entry() for Strategy C
             except Exception as e:
                 logger.error(f"Error evaluating Strategy C: {e}")
             finally:
@@ -324,7 +372,7 @@ async def run_bot():
         asyncio.create_task(ws_manager.monitor_heartbeats()),
         asyncio.create_task(recon_manager.run_periodic_reconciliation(interval_seconds=60)),
         asyncio.create_task(liq_monitor.monitor_loop()),
-        asyncio.create_task(main_trading_loop(strategies, risk_manager, gate, fast_store, state_store))
+        asyncio.create_task(main_trading_loop(strategies, risk_manager, gate, fast_store, state_store, state_machine))
     ] + ws_tasks
     
     logger.info("All subsystems initialized. Bot is running.")
