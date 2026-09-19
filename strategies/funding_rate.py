@@ -36,7 +36,19 @@ class FundingRateStrategy:
         """
         Pulls historical window and calculates trailing average and stability.
         """
-        history = await self.client.get_historical_funding_rates(symbol, self.window_days)
+        if not hasattr(self, '_funding_cache'):
+            self._funding_cache = {}
+            self._funding_cache_time = {}
+            
+        now = time.time()
+        if symbol in self._funding_cache and (now - self._funding_cache_time.get(symbol, 0)) < 300: # 5 minute cache
+            history = self._funding_cache[symbol]
+        else:
+            history = await self.client.get_historical_funding_rates(symbol, self.window_days)
+            if history:
+                self._funding_cache[symbol] = history
+                self._funding_cache_time[symbol] = now
+
         if not history:
             return {"viable": False, "reason": "No funding history available"}
             
@@ -83,6 +95,17 @@ class FundingRateStrategy:
         """
         funding_analysis = await self._analyze_funding_history(perp_symbol)
         if not funding_analysis['viable']:
+            if self.state_store:
+                await self.state_store.save_opportunity({
+                    "strategy": "funding_rate",
+                    "symbols": f"{spot_symbol}-{perp_symbol}",
+                    "gross_spread_pct": 0.0,
+                    "net_profit_estimate": 0.0,
+                    "fee_breakdown": {},
+                    "threshold_at_time": self.min_annualized_pct,
+                    "action_taken": f"REJECTED: {funding_analysis['reason']}",
+                    "execution_id": None
+                })
             return {"enter": False, "reason": funding_analysis['reason']}
             
         # Check basis
@@ -95,15 +118,41 @@ class FundingRateStrategy:
         basis_pct = abs((perp_price - spot_price) / spot_price) * 100.0
         
         if basis_pct > self.max_basis_pct:
+            if self.state_store:
+                await self.state_store.save_opportunity({
+                    "strategy": "funding_rate",
+                    "symbols": f"{spot_symbol}-{perp_symbol}",
+                    "gross_spread_pct": funding_analysis['avg_annualized_pct'],
+                    "net_profit_estimate": 0.0,
+                    "fee_breakdown": {},
+                    "threshold_at_time": self.min_annualized_pct,
+                    "action_taken": f"REJECTED: Basis ({basis_pct:.2f}%) exceeds max ({self.max_basis_pct}%)",
+                    "execution_id": None
+                })
             return {"enter": False, "reason": f"Basis ({basis_pct:.2f}%) exceeds max allowed ({self.max_basis_pct}%)"}
             
-        return {
+        result = {
             "enter": True,
             "avg_annualized_pct": funding_analysis['avg_annualized_pct'],
             "basis_pct": basis_pct,
             "spot_price": spot_price,
             "perp_price": perp_price
         }
+        
+        if self.state_store:
+            opp_data = {
+                "strategy": "funding_rate",
+                "symbols": f"{spot_symbol}-{perp_symbol}",
+                "gross_spread_pct": funding_analysis['avg_annualized_pct'],
+                "net_profit_estimate": 0.0, # Will be calculated by execution engine
+                "fee_breakdown": {},
+                "threshold_at_time": self.min_annualized_pct,
+                "action_taken": "EXECUTE" if result['enter'] else "REJECTED",
+                "execution_id": None
+            }
+            await self.state_store.save_opportunity(opp_data)
+            
+        return result
 
     async def evaluate_exit(self, spot_symbol: str, perp_symbol: str, entry_timestamp: float) -> Dict[str, Any]:
         """

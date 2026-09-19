@@ -138,7 +138,8 @@ class SimulatedExchangeClient(ExchangeClient):
         return order_record
         
     async def get_historical_funding_rates(self, symbol: str, days_back: int) -> list:
-        # Mock empty/flat for now since we aren't testing funding on simulator yet
+        if hasattr(self, 'public_client') and self.public_client:
+            return await self.public_client.get_historical_funding_rates(symbol, days_back)
         return []
         
     async def get_mark_price(self, symbol: str) -> float:

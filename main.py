@@ -80,6 +80,21 @@ async def main_trading_loop(
             finally:
                 await fast_store.release_lock("triangular_eval")
                 
+        # 4. Evaluate Strategy C (Funding Rate)
+        if await fast_store.acquire_lock("funding_rate_eval", timeout_sec=2):
+            try:
+                fr_strat = strategies['funding_rate']
+                # Evaluate BTC spot vs BTC perpetual
+                fr_eval = await fr_strat.evaluate_entry('BTC/USDT', 'BTC/USDT:USDT')
+                if fr_eval.get('enter'):
+                    passed_gate, _ = gate.evaluate('funding_rate')
+                    if not passed_gate:
+                        logger.debug("Go-Live Gate prevents live execution. Strategy C is viable in paper.")
+            except Exception as e:
+                logger.error(f"Error evaluating Strategy C: {e}")
+            finally:
+                await fast_store.release_lock("funding_rate_eval")
+                
         await asyncio.sleep(1.0) # Throttle evaluation cycle
 
 async def run_bot():
@@ -201,10 +216,13 @@ async def run_bot():
         public_binance = CCXTExchangeClient("binance", public_only=True)
         public_bybit = CCXTExchangeClient("bybit", public_only=True)
         
+        client_binance.public_client = public_binance
+        client_bybit.public_client = public_bybit
+        
         await public_binance.initialize()
         await public_bybit.initialize()
         
-        symbols_to_watch = ["BTC/USDT", "ETH/BTC", "ETH/USDT"]
+        symbols_to_watch = ["BTC/USDT", "ETH/BTC", "ETH/USDT", "BTC/USDT:USDT"]
         for sym in symbols_to_watch:
             ws_tasks.append(asyncio.create_task(public_binance.watch_order_book_loop(sym, obm, ws_manager)))
             if sym == "BTC/USDT":
