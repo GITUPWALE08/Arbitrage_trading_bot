@@ -80,6 +80,21 @@ async def main_trading_loop(
             finally:
                 await fast_store.release_lock("triangular_eval")
                 
+        # 3.5 Evaluate Strategy B (Cross-Exchange)
+        if await fast_store.acquire_lock("cross_exchange_eval", timeout_sec=2):
+            try:
+                ce_strat = strategies['cross_exchange']
+                # Evaluate BTC/USDT spread between binance and bybit
+                ce_eval = await ce_strat.evaluate_opportunity('BTC/USDT', 'binance', 'bybit', 0.05)
+                if ce_eval.get('is_viable'):
+                    passed_gate, _ = gate.evaluate('cross_exchange')
+                    if not passed_gate:
+                        logger.debug("Go-Live Gate prevents live execution. Strategy B is viable in paper.")
+            except Exception as e:
+                logger.error(f"Error evaluating Strategy B: {e}")
+            finally:
+                await fast_store.release_lock("cross_exchange_eval")
+                
         # 4. Evaluate Strategy C (Funding Rate)
         if await fast_store.acquire_lock("funding_rate_eval", timeout_sec=2):
             try:

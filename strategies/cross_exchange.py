@@ -39,6 +39,17 @@ class CrossExchangeArbitrageStrategy:
         sell_book = await self.orderbook_manager.get_book(sell_exchange, symbol)
         
         if not buy_book or not sell_book:
+            if hasattr(self.state_machine, 'state_store'):
+                await self.state_machine.state_store.save_opportunity({
+                    "strategy": "cross_exchange",
+                    "symbols": f"{symbol}",
+                    "gross_spread_pct": 0.0,
+                    "net_profit_estimate": 0.0,
+                    "fee_breakdown": {},
+                    "threshold_at_time": self.min_profit_threshold_pct,
+                    "action_taken": f"REJECTED: Missing order books for {symbol}",
+                    "execution_id": None
+                })
             return {"is_viable": False, "reason": "Missing order books"}
 
         legs = [
@@ -64,8 +75,35 @@ class CrossExchangeArbitrageStrategy:
                 cross_exchange_withdrawal_fee=self.withdrawal_fee_usd
             )
             result['legs'] = legs
+            
+            # Log opportunity to DB
+            if hasattr(self.state_machine, 'state_store'):
+                gross_spread_pct = (result.get('explicit_gross_pnl', 0.0) / (size * avg_price)) * 100.0 if (size * avg_price) > 0 else 0.0
+                opp_data = {
+                    "strategy": "cross_exchange",
+                    "symbols": f"{symbol}",
+                    "gross_spread_pct": gross_spread_pct,
+                    "net_profit_estimate": result.get('net_profit_est', 0.0),
+                    "fee_breakdown": result.get("fee_breakdown", {}),
+                    "threshold_at_time": self.min_profit_threshold_pct,
+                    "action_taken": "EXECUTE" if result.get('is_viable') else "REJECTED",
+                    "execution_id": None
+                }
+                await self.state_machine.state_store.save_opportunity(opp_data)
+                
             return result
         except ValueError as e:
+            if hasattr(self.state_machine, 'state_store'):
+                await self.state_machine.state_store.save_opportunity({
+                    "strategy": "cross_exchange",
+                    "symbols": f"{symbol}",
+                    "gross_spread_pct": 0.0,
+                    "net_profit_estimate": 0.0,
+                    "fee_breakdown": {},
+                    "threshold_at_time": self.min_profit_threshold_pct,
+                    "action_taken": f"REJECTED: FeeCalc Error: {e}",
+                    "execution_id": None
+                })
             return {"is_viable": False, "reason": f"FeeCalc Error: {e}"}
 
     async def execute_arbitrage(self, context: ExecutionContext, legs: List[Dict[str, Any]]):
