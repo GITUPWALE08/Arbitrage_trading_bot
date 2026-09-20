@@ -150,14 +150,14 @@ class TriangularArbitrageStrategy:
                 # If subsequent leg, adjust target size based on previous actual fill if needed
                 if idx > 0:
                     prev_leg = filled_legs[-1]
-                    prev_filled_qty = prev_leg['filled_qty']
+                    prev_filled_qty = prev_leg.get('filled_qty', prev_leg.get('filled', 0.0))
                     if prev_leg['side'] == 'buy':
                         target_size = prev_filled_qty # We bought X base, can only use X for next step
                     else:
                         # We sold X base. We received X * price in quote asset.
                         # The next leg is going to use that quote asset to buy/sell.
                         # target_size calculation for the next leg's base asset qty relies on the new available capital.
-                        prev_price = prev_leg.get('price', 0.0)
+                        prev_price = prev_leg.get('average_price', prev_leg.get('price', 0.0))
                         received_quote = prev_filled_qty * prev_price
                         
                         # We need the current price of this new leg to convert the available quote asset into a target size
@@ -229,7 +229,7 @@ class TriangularArbitrageStrategy:
         try:
             # Reverse order
             for order in reversed(filled_legs):
-                filled_qty = order['filled_qty']
+                filled_qty = order.get('filled_qty', order.get('filled', 0.0))
                 if filled_qty <= 0:
                     continue
                     

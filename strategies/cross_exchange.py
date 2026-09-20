@@ -174,7 +174,7 @@ class CrossExchangeArbitrageStrategy:
                     
                 reverse_side = "sell" if order['side'] == "buy" else "buy"
                 exchange = order['exchange']
-                symbol = order.get('symbol', context.data.get('symbol', 'BTCUSDT')) # Fallback if symbol missing in result
+                symbol = order.get('symbol', context.data.get('symbol', 'BTC/USDT')) # Fallback if symbol missing in result
                 
                 logger.info(f"Unwinding parallel leg: {reverse_side} {filled_qty} {symbol} on {exchange}")
                 
