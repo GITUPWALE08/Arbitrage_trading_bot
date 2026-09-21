@@ -145,18 +145,69 @@ async def main_trading_loop(
             finally:
                 await fast_store.release_lock("cross_exchange_eval")
                 
-        # 4. Evaluate Strategy C (Funding Rate) — evaluation only for now (no execution method yet)
+        # 4. Evaluate Strategy C (Funding Rate) — entry evaluation + execution
         if await fast_store.acquire_lock("funding_rate_eval", timeout_sec=2):
             try:
                 fr_strat = strategies['funding_rate']
                 fr_eval = await fr_strat.evaluate_entry('BTC/USDT', 'BTC/USDT:USDT')
                 if fr_eval.get('enter'):
-                    logger.info(f"Funding rate opportunity detected: avg annualized {fr_eval.get('avg_annualized_pct', 0):.2f}%, basis {fr_eval.get('basis_pct', 0):.4f}%")
-                    # TODO: Implement execute_entry() for Strategy C
+                    should_execute = True
+                    if is_live:
+                        passed_gate, gate_reason = gate.evaluate('funding_rate')
+                        if not passed_gate:
+                            logger.info(f"Go-Live Gate blocks live funding rate execution: {gate_reason}")
+                            should_execute = False
+                    
+                    if should_execute and state_machine:
+                        import uuid
+                        ctx = ExecutionContext(
+                            execution_id=str(uuid.uuid4()),
+                            strategy="funding_rate",
+                            data={
+                                "spot_symbol": "BTC/USDT",
+                                "perp_symbol": "BTC/USDT:USDT",
+                                "avg_annualized_pct": fr_eval.get('avg_annualized_pct', 0),
+                                "basis_pct": fr_eval.get('basis_pct', 0),
+                            }
+                        )
+                        await state_machine.transition(ctx, ExecutionState.OPPORTUNITY_DETECTED)
+                        try:
+                            await fr_strat.execute_entry(ctx, 'BTC/USDT', 'BTC/USDT:USDT', fr_eval['spot_price'])
+                            logger.info(f"Funding rate entry {ctx.execution_id[:8]} completed: {ctx.state}")
+                        except Exception as e:
+                            logger.error(f"Funding rate entry execution failed: {e}")
             except Exception as e:
                 logger.error(f"Error evaluating Strategy C: {e}")
             finally:
                 await fast_store.release_lock("funding_rate_eval")
+        
+        # 5. Monitor active funding rate positions for exit signals
+        if await fast_store.acquire_lock("funding_rate_exit_eval", timeout_sec=2):
+            try:
+                fr_strat = strategies['funding_rate']
+                for position_key, position in list(fr_strat.active_positions.items()):
+                    exit_eval = await fr_strat.evaluate_exit(
+                        position['spot_symbol'], position['perp_symbol'], position['entry_time']
+                    )
+                    if exit_eval.get('exit'):
+                        logger.info(f"Funding rate exit triggered for {position_key}: {exit_eval['reason']}")
+                        if state_machine:
+                            import uuid
+                            ctx = ExecutionContext(
+                                execution_id=str(uuid.uuid4()),
+                                strategy="funding_rate_exit",
+                                data={"position_key": position_key, "reason": exit_eval['reason']}
+                            )
+                            await state_machine.transition(ctx, ExecutionState.OPPORTUNITY_DETECTED)
+                            try:
+                                await fr_strat.execute_exit(ctx, position_key)
+                                logger.info(f"Funding rate exit {ctx.execution_id[:8]} completed: {ctx.state}")
+                            except Exception as e:
+                                logger.error(f"Funding rate exit execution failed: {e}")
+            except Exception as e:
+                logger.error(f"Error monitoring funding rate positions: {e}")
+            finally:
+                await fast_store.release_lock("funding_rate_exit_eval")
                 
         await asyncio.sleep(1.0) # Throttle evaluation cycle
 
@@ -196,7 +247,16 @@ async def run_bot():
         'slippage_buffer_pct': 0.05,
         'partial_fill_min_viable_pct': 50.0,
         'withdrawal_fee_usd': 5.0,
-        'exchanges': ['binance', 'bybit']
+        'exchanges': ['binance', 'bybit'],
+        'funding_rate': {
+            'funding_history_window_days': 10,
+            'min_trailing_annualized_funding_pct': 10.0,
+            'max_negative_flips_in_window': 2,
+            'max_basis_pct': 0.5,
+            'min_holding_period_hr': 24,
+            'max_holding_period_days': 14,
+            'position_size_usd': 500.0,
+        }
     }
 
     telegram_token = os.getenv("TELEGRAM_TOKEN", "")
@@ -313,7 +373,7 @@ async def run_bot():
     strategies = {
         "triangular": TriangularArbitrageStrategy(client_binance, fee_calc, obm, state_machine, config),
         "cross_exchange": CrossExchangeArbitrageStrategy(clients, fee_calc, obm, state_machine, inventory_manager, config),
-        "funding_rate": FundingRateStrategy(client_binance, fee_calc, config.get('funding_rate', {}), state_store)
+        "funding_rate": FundingRateStrategy(client_binance, fee_calc, config.get('funding_rate', {}), state_store, state_machine)
     }
 
     

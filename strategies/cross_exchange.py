@@ -39,7 +39,7 @@ class CrossExchangeArbitrageStrategy:
         sell_book = await self.orderbook_manager.get_book(sell_exchange, symbol)
         
         if not buy_book or not sell_book:
-            if hasattr(self.state_machine, 'state_store'):
+            if hasattr(self.state_machine, 'state_store') and self.state_machine.state_store:
                 await self.state_machine.state_store.save_opportunity({
                     "strategy": "cross_exchange",
                     "symbols": f"{symbol}",
@@ -69,21 +69,21 @@ class CrossExchangeArbitrageStrategy:
             result = await self.fee_calc.calculate_net_profit(
                 strategy="cross_exchange",
                 legs=legs,
-                slippage_buffer_pct=0.05,
+                slippage_buffer_pct=self.config.get('slippage_buffer_pct', 0.05),
                 latency_decay_estimate_pct=0.01,
                 min_profit_threshold=min_profit_abs,
-                cross_exchange_withdrawal_fee=self.withdrawal_fee_usd
+                cross_exchange_withdrawal_fee=0.0  # Pre-funded; withdrawal fees handled by rebalancer
             )
             result['legs'] = legs
             
             # Log opportunity to DB
-            if hasattr(self.state_machine, 'state_store'):
-                gross_spread_pct = (result.get('explicit_gross_pnl', 0.0) / (size * avg_price)) * 100.0 if (size * avg_price) > 0 else 0.0
+            if hasattr(self.state_machine, 'state_store') and self.state_machine.state_store:
+                gross_spread_pct = (result.get('gross_pnl', 0.0) / (size * avg_price)) * 100.0 if (size * avg_price) > 0 else 0.0
                 opp_data = {
                     "strategy": "cross_exchange",
-                    "symbols": f"{symbol}",
+                    "symbols": f"{symbol} ({buy_exchange}→{sell_exchange})",
                     "gross_spread_pct": gross_spread_pct,
-                    "net_profit_estimate": result.get('net_profit_est', 0.0),
+                    "net_profit_estimate": result.get('net_profit', 0.0),
                     "fee_breakdown": result.get("fee_breakdown", {}),
                     "threshold_at_time": self.min_profit_threshold_pct,
                     "action_taken": "EXECUTE" if result.get('is_viable') else "REJECTED",
@@ -93,7 +93,7 @@ class CrossExchangeArbitrageStrategy:
                 
             return result
         except ValueError as e:
-            if hasattr(self.state_machine, 'state_store'):
+            if hasattr(self.state_machine, 'state_store') and self.state_machine.state_store:
                 await self.state_machine.state_store.save_opportunity({
                     "strategy": "cross_exchange",
                     "symbols": f"{symbol}",

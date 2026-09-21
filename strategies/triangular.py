@@ -73,12 +73,25 @@ class TriangularArbitrageStrategy:
                 else:
                     size = current_qty
                     
+                # Calculate quote_to_usd_rate for non-USD quote pairs (e.g. ETH/BTC → BTC ~$60,000)
+                quote_asset = symbol.split('/')[1] if '/' in symbol else 'USDT'
+                if quote_asset in ('USDT', 'USD', 'BUSD', 'USDC'):
+                    quote_to_usd_rate = 1.0
+                else:
+                    # Look up the quote asset's USD price from existing order books
+                    quote_book = await self.orderbook_manager.get_book(self.exchange_name, f"{quote_asset}/USDT")
+                    if quote_book and quote_book.bids:
+                        quote_to_usd_rate = quote_book.bids[0][0]  # e.g. BTC/USDT bid price
+                    else:
+                        quote_to_usd_rate = 1.0  # Fallback (should not happen if books are loaded)
+                    
                 legs.append({
                     'exchange': self.exchange_name,
                     'symbol': symbol,
                     'side': side,
                     'size': size,
-                    'order_book': book
+                    'order_book': book,
+                    'quote_to_usd_rate': quote_to_usd_rate
                 })
                 
                 # Update current_qty for the next leg's starting capital
